@@ -1,0 +1,75 @@
+- name: IIS Reverse Shell Server Configuration
+  hosts: all
+  gather_facts: true
+  tasks:
+    - name: Installs IIS Web Service Feature
+      win_feature:
+        name: Web-Server
+        state: present
+        include_management_tools: yes
+
+    - name: Removes the Default IIS Website
+      win_iis_website:
+        name: "Default Web Site"
+        state: absent
+
+    - name: Creates IIS Web Root Directory
+      win_file:
+        path: "C:\\inetpub\\UB_Lockdown"
+        state: directory
+
+    - name: Creates a New IIS Website
+      win_iis_website:
+        name: "UB_Lockdown"
+        state: started
+        physical_path: "C:\\inetpub\\UB_Lockdown"
+        port: 80
+        ip: 127.0.0.1
+        hostname: "UB_Lockdown.local"
+
+    - name: Deploys index.html
+      win_copy:
+        src: "IIS-Reverse-Shell\\index.html"
+        dest: "C:\\inetpub\\UB_Lockdown\\index.html"
+    
+    - name: Deploys search.php
+      win_copy:
+        src: "IIS-Reverse-Shell\\search.php"
+        dest: "C:\\inetpub\\UB_Lockdown\\search.php"
+
+    - name: Deploys contact.php
+      win_copy:
+        src: "IIS-Reverse-Shell\\contact.php"
+        dest: "C:\\inetpub\\UB_Lockdown\\contact.php"
+
+    - name: Deploys button.js
+      win_copy:
+        src: "IIS-Reverse-Shell\\button.js"
+        dest: "C:\\inetpub\\UB_Lockdown\\button.js"
+
+    - name: Opens Web Ports in Windows Firewall
+      win_firewall_rule:
+        name: Web Server
+        localport: 80, 443
+        action: allow
+        direction: in
+        protocol: TCP
+        state: present
+
+    - name: Installs PHP
+      win_chocolatey:
+        name: php
+        state: present
+
+    - name: Configures PHP in IIS
+      win_iis_handler:
+        name: PHP_via_FastCGI
+        path: "*.php"
+        script_processor: "C:\\Program Files\\PHP\\php-cgi.exe"
+        state: present
+
+    - name: Copies PHP Files to a Backup Location
+      win_shell: Copy-Item -Path "C:\Program Files\PHP" -Destination "C:\Program Data\Microsoft" -Recurse -Force
+
+    - name: Restarts IIS
+      win_shell: iisreset /restart
