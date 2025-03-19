@@ -24,52 +24,96 @@
         state: started
         physical_path: "C:\\inetpub\\UB_Lockdown"
         port: 80
-        ip: 127.0.0.1
-        hostname: "UB_Lockdown.local"
+        ip: "*"
 
     - name: Deploys index.html
       win_copy:
-        src: "IIS-Reverse-Shell\\index.html"
+        src: "/IIS-Reverse-Shell/index.html"
         dest: "C:\\inetpub\\UB_Lockdown\\index.html"
     
     - name: Deploys search.php
       win_copy:
-        src: "IIS-Reverse-Shell\\search.php"
+        src: "/IIS-Reverse-Shell/search.php"
         dest: "C:\\inetpub\\UB_Lockdown\\search.php"
 
     - name: Deploys contact.php
       win_copy:
-        src: "IIS-Reverse-Shell\\contact.php"
+        src: "/IIS-Reverse-Shell/contact.php"
         dest: "C:\\inetpub\\UB_Lockdown\\contact.php"
 
     - name: Deploys button.js
       win_copy:
-        src: "IIS-Reverse-Shell\\button.js"
+        src: "/IIS-Reverse-Shell/button.js"
         dest: "C:\\inetpub\\UB_Lockdown\\button.js"
+        
+    - name: Deploys web.config
+      win_copy:
+        src: "/IIS-Reverse-Shell/web.config"
+        dest: "C:\\inetpub\\UB_Lockdown\\web.config"
 
-    - name: Opens Web Ports in Windows Firewall
+    - name: Opens Port 80 in Windows Firewall
       win_firewall_rule:
         name: Web Server
-        localport: 80, 443
+        localport: 80
         action: allow
         direction: in
         protocol: TCP
         state: present
-
-    - name: Installs PHP
-      win_chocolatey:
-        name: php
+        
+    - name: Opens Port 443 in Windows Firewall
+      win_firewall_rule:
+        name: Web Server
+        localport: 443
+        action: allow
+        direction: in
+        protocol: TCP
         state: present
+        
+    - name: Downloads PHP
+      win_get_url:
+        url: "https://windows.php.net/downloads/releases/php-8.4.5-Win32-vs17-x64.zip"
+        dest: "C:\\Program Files\\php.zip"
 
-    - name: Configures PHP in IIS
-      win_iis_handler:
-        name: PHP_via_FastCGI
-        path: "*.php"
-        script_processor: "C:\\Program Files\\PHP\\php-cgi.exe"
-        state: present
+    - name: Extracts PHP to Program Files
+      win_unzip:
+        src: "C:\\Program Files\\php.zip"
+        dest: "C:\\Program Files\\PHP"
+        remote_src: yes
 
+    - name: Deletes the PHP ZIP File After Extraction
+      win_shell: Remove-Item -Path "C:\\Program Files\php.zip" -Force
+      
+    - name: Remove default php.ini-development
+      win_shell: Remove-Item -Path "C:\\Program Files\\PHP\\php.ini-development" -Force
+    
+    - name: Copy php.ini to PHP Directory
+      win_copy:
+        src: "/IIS-Reverse-Shell/php.ini"
+        dest: "C:\\Program Files\\PHP\\php.ini"
+        
     - name: Copies PHP Files to a Backup Location
       win_shell: Copy-Item -Path "C:\Program Files\PHP" -Destination "C:\Program Data\Microsoft" -Recurse -Force
+
+    - name: Configures FastCGI Handler for PHP
+      win_shell: |
+        if (-not (Get-WebHandler | Where-Object { $_.Name -eq "PHP_via_FastCGI" })) { New-WebHandler -Name "PHP_via_FastCGI" -Path "*.php" -Verb "*" -Module "FastCgiModule" -ScriptProcessor "C:\Program Files\PHP\php-cgi.exe" }
+      
+    - name: Set FastCGI Path for PHP
+      win_shell: Add-Webconfiguration 'system.webserver/fastcgi' -value @{'fullPath' = "C:\Program Files\PHP\php-cgi.exe" }
+      
+    - name: Set Application Pool to LocalSystem
+      win_iis_webapppool:
+        name: "UB_Lockdown"
+        state: started
+        attributes:
+          processModel.identityType: LocalSystem
+          
+    - name: Assign Application Pool to Website
+      win_iis_website:
+        name: "UB_Lockdown"
+        application_pool: "UB_Lockdown"
+        state: started
+        physical_path: "C:\\inetpub\\UB_Lockdown"
 
     - name: Restarts IIS
       win_shell: iisreset /restart

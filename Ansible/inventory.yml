@@ -1,6 +1,6 @@
 all:
   hosts:
-    192.168.1.4:
+    192.168.1.2:
       ansible_user: da1
       ansible_password: Password-123456
       ansible_connection: winrm
