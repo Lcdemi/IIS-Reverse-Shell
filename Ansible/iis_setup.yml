@@ -1,6 +1,9 @@
 - name: IIS Reverse Shell Server Configuration
   hosts: all
   gather_facts: true
+  vars:
+    Competition: "UB_Lockdown"
+
   tasks:
     - name: Installs IIS Web Service Feature
       win_feature:
@@ -15,41 +18,41 @@
 
     - name: Creates IIS Web Root Directory
       win_file:
-        path: "C:\\inetpub\\UB_Lockdown"
+        path: "C:\\inetpub\\{{ Competition }}"
         state: directory
 
     - name: Creates a New IIS Website
       win_iis_website:
-        name: "UB_Lockdown"
+        name: "{{ Competition }}"
         state: started
-        physical_path: "C:\\inetpub\\UB_Lockdown"
+        physical_path: "C:\\inetpub\\{{ Competition }}"
         port: 80
         ip: "*"
 
     - name: Deploys index.html
       win_copy:
-        src: "/IIS-Reverse-Shell/index.html"
-        dest: "C:\\inetpub\\UB_Lockdown\\index.html"
-    
-    - name: Deploys search.php
-      win_copy:
-        src: "/IIS-Reverse-Shell/search.php"
-        dest: "C:\\inetpub\\UB_Lockdown\\search.php"
-
-    - name: Deploys contact.php
-      win_copy:
-        src: "/IIS-Reverse-Shell/contact.php"
-        dest: "C:\\inetpub\\UB_Lockdown\\contact.php"
-
+        src: "/IIS-Reverse-Shell/Website/{{ Competition }}.html"
+        dest: "C:\\inetpub\\{{ Competition }}\\index.html"
+        
     - name: Deploys button.js
       win_copy:
-        src: "/IIS-Reverse-Shell/button.js"
-        dest: "C:\\inetpub\\UB_Lockdown\\button.js"
+        src: "/IIS-Reverse-Shell/Website/button.js"
+        dest: "C:\\inetpub\\{{ Competition }}\\button.js"
         
     - name: Deploys web.config
       win_copy:
-        src: "/IIS-Reverse-Shell/web.config"
-        dest: "C:\\inetpub\\UB_Lockdown\\web.config"
+        src: "/IIS-Reverse-Shell/Website/web.config"
+        dest: "C:\\inetpub\\{{ Competition }}\\web.config"
+    
+    - name: Deploys search.php
+      win_copy:
+        src: "/IIS-Reverse-Shell/PHP/search.php"
+        dest: "C:\\inetpub\\{{ Competition }}\\search.php"
+
+    - name: Deploys contact.php
+      win_copy:
+        src: "/IIS-Reverse-Shell/PHP/contact.php"
+        dest: "C:\\inetpub\\{{ Competition }}\\contact.php"
 
     - name: Opens Port 80 in Windows Firewall
       win_firewall_rule:
@@ -88,11 +91,11 @@
     
     - name: Copy php.ini to PHP Directory
       win_copy:
-        src: "/IIS-Reverse-Shell/php.ini"
+        src: "/IIS-Reverse-Shell/PHP/php.ini"
         dest: "C:\\Program Files\\PHP\\php.ini"
         
     - name: Copies PHP Files to a Backup Location
-      win_shell: Copy-Item -Path "C:\Program Files\PHP" -Destination "C:\Program Data\Microsoft" -Recurse -Force
+      win_shell: Copy-Item -Path "C:\Program Files\PHP" -Destination "C:\Program Data\Microsoft\PHP" -Recurse -Force
 
     - name: Configures FastCGI Handler for PHP
       win_shell: |
@@ -103,17 +106,17 @@
       
     - name: Set Application Pool to LocalSystem
       win_iis_webapppool:
-        name: "UB_Lockdown"
+        name: "{{ Competition }}"
         state: started
         attributes:
           processModel.identityType: LocalSystem
           
     - name: Assign Application Pool to Website
       win_iis_website:
-        name: "UB_Lockdown"
-        application_pool: "UB_Lockdown"
+        name: "{{ Competition }}"
+        application_pool: "{{ Competition }}"
         state: started
-        physical_path: "C:\\inetpub\\UB_Lockdown"
+        physical_path: "C:\\inetpub\\{{ Competition }}"
 
     - name: Restarts IIS
       win_shell: iisreset /restart
