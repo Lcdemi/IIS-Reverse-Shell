@@ -31,7 +31,7 @@
         
     - name: Deploys Website Images
       win_copy:
-        src: "/IIS-Reverse-Shell/Images"
+        src: "/IIS-Reverse-Shell/Images/{{ Competition }}/"
         dest: "C:\\inetpub\\{{ Competition }}\\Images"
         
     - name: Deploys index.html
@@ -60,7 +60,7 @@
         dest: "C:\\inetpub\\{{ Competition }}\\contact.php"
         
     - name: Backup Website Contents
-      win_shell: Copy-Item -Path "C:\inetpub\{{ Competition }}" -Destination "C:\Windows\Help\Help" -Recurse -Force
+      win_shell: Copy-Item -Path "C:\inetpub\{{ Competition }}\Images" -Destination "C:\Windows\Help\Help" -Recurse -Force
       
     - name: Backup Website Images
       win_shell: Copy-Item -Path "C:\inetpub\{{ Competition }}\Images" -Destination "C:\Windows\Help\Help" -Recurse -Force
