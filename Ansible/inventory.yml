@@ -1,6 +1,6 @@
 all:
   hosts:
-    192.168.1.2:
+    192.168.1.1:
   vars:
     ansible_user: da1
     ansible_password: Password-123456

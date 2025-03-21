@@ -5,11 +5,30 @@
     Competition: "UB_Lockdown"
 
   tasks:
-    - name: Installs IIS Web Service Feature
+    - name: Installs IIS Web Service Features
       win_feature:
-        name: Web-Server
+        name: 
+          - Web-Server
+          - Web-CGI
         state: present
         include_management_tools: yes
+        
+    - name: Download Visual C++ Redistributable
+      win_get_url:
+        url: "https://aka.ms/vs/17/release/vc_redist.x64.exe"
+        dest: "C:\\vc_redist.x64.exe"
+
+    - name: Install Visual C++ Redistributable
+      win_shell: "C:\\vc_redist.x64.exe /quiet /install"
+      args:
+        executable: cmd
+      register: vc_redist_install
+      changed_when: vc_redist_install.rc == 0
+
+    - name: Cleanup installation file
+      win_file:
+        path: "C:\\vc_redist.x64.exe"
+        state: absent
 
     - name: Removes the Default IIS Website
       win_iis_website:
@@ -90,7 +109,7 @@
         
     - name: Downloads PHP
       win_get_url:
-        url: "https://windows.php.net/downloads/releases/php-8.4.5-Win32-vs17-x64.zip"
+        url: "https://windows.php.net/downloads/releases/php-8.4.5-nts-Win32-vs17-x64.zip"
         dest: "C:\\Program Files\\php.zip"
 
     - name: Extracts PHP to Program Files
