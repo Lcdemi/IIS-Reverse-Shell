@@ -60,7 +60,7 @@
         main h2 {
             font-size: 1.8rem;
             color: #333;
-            margin-bottom: 20px;
+            margin-bottom: 35px;
         }
         main p {
             font-size: 1rem;
@@ -82,39 +82,31 @@
             background-color: #005A9E;
         }
 
-        /* Features Section */
-        .features {
-            padding: 40px 20px;
+        /* Gallery Section */
+        .gallery {
+            padding: 20px 10px;
             text-align: center;
+	    margin-bottom: 20px;
         }
-        .features h2 {
+        .gallery h2 {
             font-size: 1.8rem;
             color: #333;
-            margin-bottom: 20px;
+            margin-bottom: 35px;
         }
-        .features .feature-items {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-        .features .feature-item {
-            text-align: center;
-            max-width: 250px;
-        }
-        .features img {
-            width: 100px;
-            height: 100px;
-            margin-bottom: 10px;
-        }
-        .features h3 {
-            font-size: 1.2rem;
-            color: #333;
-        }
-        .features p {
-            color: #555;
-            font-size: 0.9rem;
-        }
+
+	.gallery-photos {
+	    display: flex;
+	    justify-content: space-between;
+	    align-items: center;
+	    width: 100%;
+	    gap: 10px;
+	}
+
+	.gallery-photos img {
+	    width: 32.9%;
+	    height: auto;
+	    object-fit: cover; 
+	}
 
         /* Competing Teams Section */
         .teams {
@@ -124,7 +116,7 @@
         .teams h2 {
             font-size: 1.8rem;
             color: #333;
-            margin-bottom: 20px;
+            margin-bottom: 35px;
         }
         .teams .team-list {
             max-width: 600px;
@@ -152,7 +144,7 @@
         .sponsors h2 {
             font-size: 1.8rem;
             color: #333;
-            margin-bottom: 20px;
+            margin-bottom: 35px;
         }
         .sponsors .sponsor-logos {
             display: flex;
@@ -207,7 +199,7 @@
 </head>
 <body>
     <header>
-        <h1>UB Lockdown Homepage</h1>
+        <h1>UB Lockdown</h1>
     </header>
 
     <nav>
@@ -226,25 +218,13 @@
         <button onclick="showAlert()">Learn More</button>
     </main>
 
-    <!-- Features Section -->
-    <section class="features">
-        <h2>Competition Features</h2>
-        <div class="feature-items">
-            <div class="feature-item">
-                <img src="Images\\feature1.png" alt="Feature 1">
-                <h3>Feature 1</h3>
-                <p>Feature 1 Description Here.</p>
-            </div>
-            <div class="feature-item">
-                <img src="Images\\feature2.png" alt="Feature 2">
-                <h3>Feature 2</h3>
-                <p>Feature 2 Description Here.</p>
-            </div>
-            <div class="feature-item">
-                <img src="Images\\feature3.png" alt="Feature 3">
-                <h3>Feature 3</h3>
-                <p>Feature 3 Description Here.</p>
-            </div>
+    <!-- Gallery Section -->
+    <section class="gallery">
+        <h2>Competition Picture Gallery</h2>
+        <div class="gallery-photos">
+            <img src="Images\\gallery1.jpg" alt="Gallery 1">
+            <img src="Images\\gallery2.jpg" alt="Gallery 2">
+            <img src="Images\\gallery3.jpg" alt="Gallery 3">
         </div>
     </section>
 
@@ -252,10 +232,16 @@
     <section class="teams">
         <h2>Competing Teams</h2>
         <ul class="team-list">
-            <li>Team 1 - Rochester Institute of Technology</li>
-            <li>Team 2 - Rochester Institute of Technology</li>
-            <li>Team 3 - University of Buffalo </li>
-            <li>Team 4 - University of Buffalo</li>
+            <li>Team 1 - ???</li>
+            <li>Team 2 - ???</li>
+            <li>Team 3 - ???</li>
+            <li>Team 4 - ???</li>
+            <li>Team 5 - ???</li>
+            <li>Team 6 - ???</li>
+            <li>Team 7 - ???</li>
+            <li>Team 8 - ???</li>
+            <li>Team 9 - ???</li>
+            <li>Team 10 - ???</li>
         </ul>
     </section>
 
