@@ -11,19 +11,24 @@ This project demonstrates setting up a reverse shell on an IIS server. It includ
 
 <pre>IIS-Reverse-Shell/
 ├── Ansible/
-│   ├── playbook.yml
-│   ├── playbook.yml
-│   └── inventory.yml
+│   ├── iis_setup.yml
+│   ├── inventory.yml
+│   └── ansible.cfg
 ├── Images/
 │   └── UB_Lockdown/
 │       ├── gallery1.jpg
 │       ├── gallery2.jpg
-│       └── gallery3.jpg
+│       ├── gallery3.jpg
+│       ├── Sponsor1.png
+│       └── logo.png
 ├── PHP/
-│   └── reverse_shell.php
+│   ├── contact.php
+│   ├── search.php
+│   └── php.ini
 └── Website/
-    ├── index.html
-    └── styles.css
+    ├── UB_Lockdown.html
+    ├── button.js
+    └── web.config
 </pre>
 
 ### Directory Breakdown
@@ -38,6 +43,11 @@ This project demonstrates setting up a reverse shell on an IIS server. It includ
 - **Ansible**: Installed on the control machine (With Windows Community Ansible Package).
 - **Windows Server**: With WinRM running and enabled.
 - **Network Configuration**: Ensure the server is accessible and that required ports are properly configured.
+- **Required Ansible Packages**:
+  ```sh
+  ansible-galaxy collection install ansible.windows community.windows
+  pip install pywinrm
+  ```
 
 ### Steps
 
