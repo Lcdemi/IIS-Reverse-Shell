@@ -15,6 +15,11 @@
       win_iis_website:
         name: "Default Web Site"
         state: absent
+        
+    - name: Removes Default Application Pool
+      win_iis_webapppool:
+        name: "DefaultAppPool"
+        state: absent
 
     - name: Creates IIS Web Root Directory
       win_file:
@@ -113,7 +118,13 @@
         if (-not (Get-WebHandler | Where-Object { $_.Name -eq "PHP_via_FastCGI" })) { New-WebHandler -Name "PHP_via_FastCGI" -Path "*.php" -Verb "*" -Module "FastCgiModule" -ScriptProcessor "C:\Program Files\PHP\php-cgi.exe" }
       
     - name: Set FastCGI Path for PHP
-      win_shell: Add-Webconfiguration 'system.webserver/fastcgi' -value @{'fullPath' = "C:\Program Files\PHP\php-cgi.exe" }
+      win_shell: |
+        $existing = Get-WebConfigurationProperty -pspath "MACHINE/WEBROOT/APPHOST" `
+          -filter "system.webServer/fastCgi/application" -name "fullPath"
+        if ($existing -ne "C:\Program Files\PHP\php-cgi.exe") {
+            Add-WebConfigurationProperty -pspath "MACHINE/WEBROOT/APPHOST" `
+              -filter "system.webServer/fastCgi" -name "." `
+              -value @{fullPath="C:\Program Files\PHP\php-cgi.exe"} }
       
     - name: Set Application Pool to LocalSystem
       win_iis_webapppool:
