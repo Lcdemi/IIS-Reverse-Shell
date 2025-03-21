@@ -40,7 +40,7 @@ This project demonstrates setting up a reverse shell on an IIS server. It includ
 ## Setup Instructions
 
 ### Prerequisites
-- **Ansible**: Installed on the control machine (With Windows Community Ansible Package).
+- **Ansible**: Installed on the control machine.
 - **Windows Server**: With WinRM running and enabled.
 - **Network Configuration**: Ensure the server is accessible and that required ports are properly configured.
 - **Required Ansible Packages**:
