@@ -37,8 +37,8 @@ This project demonstrates setting up a reverse shell on an IIS server. It includ
 ### Directory Breakdown
 - **`Ansible/`**: Contains playbooks and inventory files for automating server setup.
 - **`Images/UB_Lockdown/`**: Directory with images used in the website.
-- **`Persistence/`**: Contains the C++ executable service that maintains persistence on the server.
 - **`PHP/`**: Contains the PHP script for the reverse shell.
+- **`Persistence/`**: Contains the C++ executable service that maintains persistence on the server.
 - **`Website/`**: HTML and CSS files for the website's frontend.
 
 ## Setup Instructions
