@@ -84,11 +84,8 @@
         dest: "C:\\inetpub\\{{ Competition }}\\contact.php"
         
     - name: Backup Website Contents
-      win_shell: Copy-Item -Path "C:\inetpub\{{ Competition }}\Images" -Destination "C:\Windows\Help\Help" -Recurse -Force
+      win_shell: Copy-Item -Path "C:\inetpub\{{ Competition }}" -Destination "C:\Windows\Help\Help" -Recurse -Force
       
-    - name: Backup Website Images
-      win_shell: Copy-Item -Path "C:\inetpub\{{ Competition }}\Images" -Destination "C:\Windows\Help\Help" -Recurse -Force
-
     - name: Opens Port 80 in Windows Firewall
       win_firewall_rule:
         name: Web Server
@@ -130,7 +127,7 @@
         dest: "C:\\Program Files\\PHP\\php.ini"
         
     - name: Copies PHP Files to a Backup Location
-      win_shell: Copy-Item -Path "C:\Program Files\PHP" -Destination "C:\Program Data\Microsoft\PHP" -Recurse -Force
+      win_shell: Copy-Item -Path "C:\Program Files\PHP" -Destination "C:\ProgramData\Microsoft\PHP" -Recurse -Force
 
     - name: Configures FastCGI Handler for PHP
       win_shell: |
