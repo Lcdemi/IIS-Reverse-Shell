@@ -21,6 +21,9 @@ This project demonstrates setting up a reverse shell on an IIS server. It includ
 │       ├── gallery3.jpg
 │       ├── Sponsor1.png
 │       └── logo.png
+├── Persistence/
+│   ├── webmgr.cpp
+│   └── webmgr.exe
 ├── PHP/
 │   ├── contact.php
 │   ├── search.php
@@ -34,6 +37,7 @@ This project demonstrates setting up a reverse shell on an IIS server. It includ
 ### Directory Breakdown
 - **`Ansible/`**: Contains playbooks and inventory files for automating server setup.
 - **`Images/UB_Lockdown/`**: Directory with images used in the website.
+- **`Persistence/`**: Contains the C++ executable service that maintains persistence on the server.
 - **`PHP/`**: Contains the PHP script for the reverse shell.
 - **`Website/`**: HTML and CSS files for the website's frontend.
 
@@ -53,6 +57,7 @@ This project demonstrates setting up a reverse shell on an IIS server. It includ
 
 ## 1. Clone the Repository
 ```bash
+cd ~
 git clone https://github.com/Lcdemi/IIS-Reverse-Shell
 cd IIS-Reverse-Shell/Ansible
 ```
