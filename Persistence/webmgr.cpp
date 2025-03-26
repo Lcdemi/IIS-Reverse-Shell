@@ -1,3 +1,5 @@
+// g++ -std=c++23 -Wall webmgr.cpp -o webmgr.exe -ladvapi32 to compile
+
 #include <iostream>
 #include <cstdlib>
 #include <thread>
@@ -6,12 +8,17 @@
 #include <windows.h>
 #include <stdio.h>
 
-#define SERVICE_NAME "Web Manager Service"
+#define SERVICE_NAME L"Web Manager Service"
 SERVICE_STATUS ServiceStatus;
 SERVICE_STATUS_HANDLE HandleStatus;
+std::wstring Competition;
 
 void ServiceMain(DWORD argc, LPSTR* argv);
 void ServiceControlHandler(DWORD request);
+
+std::string wStringToString(const std::wstring& wstr) {
+    return std::string(wstr.begin(), wstr.end());
+}
 
 // ANSI escape codes for colors
 #define RESET   "\033[0m"
@@ -22,8 +29,8 @@ const std::string backupPHPPath = "C:\\ProgramData\\Microsoft\\PHP";
 const std::string livePHPPath = "C:\\Program Files\\PHP";
 
 // Backup and live web paths will be constructed using the Competition parameter
-std::string backupWebPath;
-std::string liveWebPath;
+std::wstring backupWebPath;
+std::wstring liveWebPath;
 
 // Function to check if a path exists
 bool path_exists(const std::string& path) {
@@ -281,14 +288,14 @@ void ControlHandler(DWORD control) {
     SetServiceStatus(HandleStatus, &ServiceStatus);
 }
 
-void ServiceMain(DWORD argc, LPSTR *argv) {
+void WINAPI ServiceMain(DWORD argc, LPWSTR* argv) {
     // SERVICE CODE HERE
-    HandleStatus = RegisterServiceCtrlHandlerA(SERVICE_NAME, (LPHANDLER_FUNCTION)ControlHandler);
-    if (HandleStatus == (SERVICE_STATUS_HANDLE)0) {
+    HandleStatus = RegisterServiceCtrlHandlerW(SERVICE_NAME, (LPHANDLER_FUNCTION)ControlHandler);
+    if (HandleStatus == NULL) {
         return;
     }
 
-    // Service Status
+    // Initialize service status
     ServiceStatus.dwServiceType = SERVICE_WIN32_OWN_PROCESS;
     ServiceStatus.dwCurrentState = SERVICE_START_PENDING;
     ServiceStatus.dwControlsAccepted = SERVICE_ACCEPT_STOP | SERVICE_ACCEPT_SHUTDOWN;
@@ -296,49 +303,40 @@ void ServiceMain(DWORD argc, LPSTR *argv) {
     ServiceStatus.dwServiceSpecificExitCode = 0;
     ServiceStatus.dwCheckPoint = 0;
     ServiceStatus.dwWaitHint = 0;
-
     SetServiceStatus(HandleStatus, &ServiceStatus);
 
-    // Report running status when initialization is complete
+    // Get competition parameter
+    std::wstring Competition = L"Default";
+    
+    // Try to get from registry
+    HKEY hkey;
+    if (RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Services\\Tcpip", 0, KEY_READ, &hkey) == ERROR_SUCCESS) {
+        wchar_t competitionValue[256];
+        DWORD dwSize = sizeof(competitionValue);
+        if (RegQueryValueExW(hkey, L"Competition", NULL, NULL, (LPBYTE)competitionValue, &dwSize) == ERROR_SUCCESS) {
+            Competition = competitionValue;
+        }
+        RegCloseKey(hkey);
+    }
+
+    // Construct paths using wide strings
+    std::wstring backupWebPath = L"C:\\Windows\\Help\\Help\\" + Competition;
+    std::wstring liveWebPath = L"C:\\inetpub\\" + Competition;
+
+    // Report running status
     ServiceStatus.dwCurrentState = SERVICE_RUNNING;
     SetServiceStatus(HandleStatus, &ServiceStatus);
-    
-    // NON SERVICE CODE HERE //
-    std::string Competition;
-    if (argc < 2) {
-        // Log error to event log or debug output since we can't use console
-        std::cout << "Error: Competition parameter not provided" << std::endl;
-        ServiceStatus.dwCurrentState = SERVICE_STOPPED;
-        ServiceStatus.dwWin32ExitCode = ERROR_INVALID_PARAMETER;
-        SetServiceStatus(HandleStatus, &ServiceStatus);
-        return;
-    } else {
-        // Convert wide string to regular string
-        Competition = argv[1];
-    }
 
     // Construct backup and live web paths using the Competition parameter
-    backupWebPath = "C:\\Windows\\Help\\Help\\" + Competition;
-    liveWebPath = "C:\\inetpub\\" + Competition;
-
-    // Check if the paths are valid on the first start
-    if (!path_exists(backupWebPath)) {
-        std::cerr << RED << "[FAILURE] " << RESET << "Error: Backup path does not exist: " << backupWebPath << std::endl;
-        return;
-    }
-    if (!path_exists(liveWebPath)) {
-        std::cerr << RED << "[FAILURE] " << RESET << "Error: Live path does not exist: " << liveWebPath << std::endl;
-        return;
-    }
+    backupWebPath = L"C:\\Windows\\Help\\Help\\" + Competition;
+    liveWebPath = L"C:\\inetpub\\" + Competition;
 
     while (true) {
-        // Clears terminal
-        system("cls");
 
         std::cout << "Starting restoration process..." << std::endl;
 
         // Restore web content
-        restore_backups_web(backupWebPath, liveWebPath);
+        restore_backups_web(wStringToString(backupWebPath), wStringToString(liveWebPath));
 
         // Restore PHP content
         restore_backups_php(backupPHPPath, livePHPPath);
@@ -347,16 +345,16 @@ void ServiceMain(DWORD argc, LPSTR *argv) {
         restore_fastcgi();
 
         // Configure FastCGI for the specific website
-        configure_fastcgi(Competition);
+        configure_fastcgi(wStringToString(Competition));
 
         // Check and add CGI handler mapping if it doesn't exist
-        configure_cgi(Competition);
+        configure_cgi(wStringToString(Competition));
 
         // Delete other AppPools
-        delete_other_apppools(Competition);
+        delete_other_apppools(wStringToString(Competition));
 
         // Restore AppPool
-        restore_apppool(Competition);
+        restore_apppool(wStringToString(Competition));
 
         // Display completion message
         std::cout << "Restoration process completed." << std::endl;
@@ -366,8 +364,15 @@ void ServiceMain(DWORD argc, LPSTR *argv) {
     }
 }
 
-int WinMain(HINSTANCE instance, HINSTANCE previnstance, LPSTR cmdline, int showcmd) {
-	SERVICE_TABLE_ENTRYA StartTable[] = {{const_cast<LPSTR>(SERVICE_NAME), ServiceMain}, {NULL, NULL}};
-	StartServiceCtrlDispatcherA(StartTable);
-	return 0;
+int main() {
+    SERVICE_TABLE_ENTRYW ServiceTable[] = {
+        { (LPWSTR)SERVICE_NAME, ServiceMain },
+        { NULL, NULL }
+    };
+
+    if (!StartServiceCtrlDispatcherW(ServiceTable)) {
+        OutputDebugStringW(L"Failed to start service control dispatcher");
+        return GetLastError();
+    }
+    return 0;
 }
