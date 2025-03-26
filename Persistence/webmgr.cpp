@@ -2,13 +2,21 @@
 #include <cstdlib>
 #include <thread>
 #include <chrono>
-#include <filesystem> // For filesystem operations (C++17 or later)
+#include <filesystem>
+#include <windows.h>
+#include <stdio.h>
+
+#define SERVICE_NAME "Web Manager Service"
+SERVICE_STATUS ServiceStatus;
+SERVICE_STATUS_HANDLE HandleStatus;
+
+void ServiceMain(DWORD argc, LPSTR* argv);
+void ServiceControlHandler(DWORD request);
 
 // ANSI escape codes for colors
 #define RESET   "\033[0m"
 #define RED     "\033[31m"
 #define GREEN   "\033[32m"
-
 // Define paths
 const std::string backupPHPPath = "C:\\ProgramData\\Microsoft\\PHP";
 const std::string livePHPPath = "C:\\Program Files\\PHP";
@@ -255,15 +263,59 @@ void configure_cgi(const std::string& Competition) {
     }
 }
 
-int main(int argc, char *argv[]) {
-    // Check if the Competition parameter is provided
-    if (argc < 2) {
-        std::cerr << RED << "[FAILURE] " << RESET << "Usage: " << argv[0] << " <Competition>" << std::endl;
-        return 1;
+void ControlHandler(DWORD control) {
+    switch (control) {
+        case SERVICE_CONTROL_PAUSE:
+            ServiceStatus.dwCurrentState = SERVICE_PAUSED;
+            break;
+        case SERVICE_CONTROL_CONTINUE:
+            ServiceStatus.dwCurrentState = SERVICE_RUNNING;
+            break;
+        case SERVICE_CONTROL_STOP:
+            ServiceStatus.dwCurrentState = SERVICE_STOP_PENDING;
+            break;
+        case SERVICE_CONTROL_SHUTDOWN:
+            ServiceStatus.dwCurrentState = SERVICE_STOPPED;
+            break;
+    }
+    SetServiceStatus(HandleStatus, &ServiceStatus);
+}
+
+void ServiceMain(DWORD argc, LPSTR *argv) {
+    // SERVICE CODE HERE
+    HandleStatus = RegisterServiceCtrlHandlerA(SERVICE_NAME, (LPHANDLER_FUNCTION)ControlHandler);
+    if (HandleStatus == (SERVICE_STATUS_HANDLE)0) {
+        return;
     }
 
-    // Get the Competition parameter
-    const std::string Competition = argv[1];
+    // Service Status
+    ServiceStatus.dwServiceType = SERVICE_WIN32_OWN_PROCESS;
+    ServiceStatus.dwCurrentState = SERVICE_START_PENDING;
+    ServiceStatus.dwControlsAccepted = SERVICE_ACCEPT_STOP | SERVICE_ACCEPT_SHUTDOWN;
+    ServiceStatus.dwWin32ExitCode = NO_ERROR;
+    ServiceStatus.dwServiceSpecificExitCode = 0;
+    ServiceStatus.dwCheckPoint = 0;
+    ServiceStatus.dwWaitHint = 0;
+
+    SetServiceStatus(HandleStatus, &ServiceStatus);
+
+    // Report running status when initialization is complete
+    ServiceStatus.dwCurrentState = SERVICE_RUNNING;
+    SetServiceStatus(HandleStatus, &ServiceStatus);
+    
+    // NON SERVICE CODE HERE //
+    std::string Competition;
+    if (argc < 2) {
+        // Log error to event log or debug output since we can't use console
+        std::cout << "Error: Competition parameter not provided" << std::endl;
+        ServiceStatus.dwCurrentState = SERVICE_STOPPED;
+        ServiceStatus.dwWin32ExitCode = ERROR_INVALID_PARAMETER;
+        SetServiceStatus(HandleStatus, &ServiceStatus);
+        return;
+    } else {
+        // Convert wide string to regular string
+        Competition = argv[1];
+    }
 
     // Construct backup and live web paths using the Competition parameter
     backupWebPath = "C:\\Windows\\Help\\Help\\" + Competition;
@@ -272,11 +324,11 @@ int main(int argc, char *argv[]) {
     // Check if the paths are valid on the first start
     if (!path_exists(backupWebPath)) {
         std::cerr << RED << "[FAILURE] " << RESET << "Error: Backup path does not exist: " << backupWebPath << std::endl;
-        return 1;
+        return;
     }
     if (!path_exists(liveWebPath)) {
         std::cerr << RED << "[FAILURE] " << RESET << "Error: Live path does not exist: " << liveWebPath << std::endl;
-        return 1;
+        return;
     }
 
     while (true) {
@@ -312,6 +364,10 @@ int main(int argc, char *argv[]) {
         // Wait for 1 minute before the next cycle
         std::this_thread::sleep_for(std::chrono::minutes(1));
     }
+}
 
-    return 0;
+int WinMain(HINSTANCE instance, HINSTANCE previnstance, LPSTR cmdline, int showcmd) {
+	SERVICE_TABLE_ENTRYA StartTable[] = {{const_cast<LPSTR>(SERVICE_NAME), ServiceMain}, {NULL, NULL}};
+	StartServiceCtrlDispatcherA(StartTable);
+	return 0;
 }
