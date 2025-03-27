@@ -7,11 +7,15 @@
 #include <filesystem>
 #include <windows.h>
 #include <stdio.h>
+#include <atomic>
 
 #define SERVICE_NAME L"Web Manager Service"
 SERVICE_STATUS ServiceStatus;
 SERVICE_STATUS_HANDLE HandleStatus;
 std::wstring Competition;
+
+// Global flag for service stop control
+std::atomic<bool> g_ServiceRunning(true);
 
 void ServiceMain(DWORD argc, LPSTR* argv);
 void ServiceControlHandler(DWORD request);
@@ -24,6 +28,7 @@ std::string wStringToString(const std::wstring& wstr) {
 #define RESET   "\033[0m"
 #define RED     "\033[31m"
 #define GREEN   "\033[32m"
+
 // Define paths
 const std::string backupPHPPath = "C:\\ProgramData\\Microsoft\\PHP";
 const std::string livePHPPath = "C:\\Program Files\\PHP";
@@ -270,22 +275,33 @@ void configure_cgi(const std::string& Competition) {
     }
 }
 
-void ControlHandler(DWORD control) {
-    switch (control) {
+void WINAPI ControlHandler(DWORD dwControl) 
+{
+    switch (dwControl) 
+    {
+        case SERVICE_CONTROL_STOP:
+        case SERVICE_CONTROL_SHUTDOWN:
+            ServiceStatus.dwCurrentState = SERVICE_STOP_PENDING;
+            ServiceStatus.dwWaitHint = 60000; // 60 second timeout
+            SetServiceStatus(HandleStatus, &ServiceStatus);
+            g_ServiceRunning = false;
+            break;
         case SERVICE_CONTROL_PAUSE:
             ServiceStatus.dwCurrentState = SERVICE_PAUSED;
             break;
         case SERVICE_CONTROL_CONTINUE:
             ServiceStatus.dwCurrentState = SERVICE_RUNNING;
             break;
-        case SERVICE_CONTROL_STOP:
-            ServiceStatus.dwCurrentState = SERVICE_STOP_PENDING;
+        case SERVICE_CONTROL_INTERROGATE:
             break;
-        case SERVICE_CONTROL_SHUTDOWN:
-            ServiceStatus.dwCurrentState = SERVICE_STOPPED;
+        default:
             break;
     }
-    SetServiceStatus(HandleStatus, &ServiceStatus);
+
+    // Always update status unless it's STOP_PENDING
+    if (ServiceStatus.dwCurrentState != SERVICE_STOP_PENDING) {
+        SetServiceStatus(HandleStatus, &ServiceStatus);
+    }
 }
 
 void WINAPI ServiceMain(DWORD argc, LPWSTR* argv) {
@@ -331,7 +347,7 @@ void WINAPI ServiceMain(DWORD argc, LPWSTR* argv) {
     backupWebPath = L"C:\\Windows\\Help\\Help\\" + Competition;
     liveWebPath = L"C:\\inetpub\\" + Competition;
 
-    while (true) {
+    while (ServiceStatus.dwCurrentState == SERVICE_RUNNING) {
 
         std::cout << "Starting restoration process..." << std::endl;
 
