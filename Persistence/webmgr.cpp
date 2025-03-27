@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include <atomic>
 
-#define SERVICE_NAME L"Web Manager Service"
+#define SERVICE_NAME L"Website Manager Service"
 SERVICE_STATUS ServiceStatus;
 SERVICE_STATUS_HANDLE HandleStatus;
 std::wstring Competition;
