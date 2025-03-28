@@ -5,32 +5,18 @@
 #include <cstdlib>
 #include <windows.h>
 
-bool persistenceController::PathExists(const std::string& path) {
-    return std::filesystem::exists(path);
-}
-
 void persistenceController::RestoreBackupsWeb(const std::string& source, const std::string& destination) {
     std::string restoreCmd = "robocopy \"" + source + "\" \"" + destination + "\" /E /XF web.config >nul 2>&1";
-    int result = system(restoreCmd.c_str());
-    if (result == 0 || result == 1) {
-        ServiceController::ServiceLog("[SUCCESS] Web content restored successfully.");
-    } else {
-        ServiceController::ServiceLog("[FAILURE] Failed to restore web content. Robocopy error code: " + std::to_string(result));
-    }
+    system(restoreCmd.c_str());
 }
 
 void persistenceController::RestoreBackupsPHP(const std::string& source, const std::string& destination) {
     std::string restoreCmd = "robocopy \"" + source + "\" \"" + destination + "\" /E /PURGE >nul 2>&1";
-    int result = system(restoreCmd.c_str());
-    if (result == 0 || result == 1) {
-        ServiceController::ServiceLog("[SUCCESS] PHP content restored successfully.");
-    } else {
-        ServiceController::ServiceLog("[FAILURE] Failed to restore PHP content. Robocopy error code: " + std::to_string(result));
-    }
+    system(restoreCmd.c_str());
 }
 
 void persistenceController::RestoreCGI() {
-    const char* installCommand = "powershell -Command \"\
+    std::string installCommand = "powershell -Command \"\
         Import-Module ServerManager; \
         $feature = Get-WindowsFeature -Name Web-CGI; \
         if (-not $feature.Installed) { \
@@ -40,13 +26,7 @@ void persistenceController::RestoreCGI() {
             } \
         }\
     \"";
-
-    int result = system(installCommand);
-    if (result == 0) {
-        ServiceController::ServiceLog("[SUCCESS] IIS-CGI module is installed and enabled.");
-    } else {
-        ServiceController::ServiceLog("[FAILURE] Failed to install or enable IIS-CGI module.");
-    }
+    system(installCommand.c_str());
 }
 
 void persistenceController::ConfigureFastCGI(const std::string& Competition) {
@@ -64,14 +44,7 @@ void persistenceController::ConfigureFastCGI(const std::string& Competition) {
         }\
     \"";
 
-    int pathResult = system(setPathCommand.c_str());
-    if (pathResult == 0) {
-        ServiceController::ServiceLog("[SUCCESS] FastCGI path for PHP set successfully at the global level.");
-    } else if (pathResult == 2) {
-        ServiceController::ServiceLog("[SUCCESS] FastCGI path for PHP is already set at the global level.");
-    } else {
-        ServiceController::ServiceLog("[FAILURE] Failed to set FastCGI path for PHP at the global level.");
-    }
+    system(setPathCommand.c_str());
 
     // Restores handler at the IIS server level (global)
     std::string configureGlobalHandlerCommand = "powershell -Command \"\
@@ -88,14 +61,7 @@ void persistenceController::ConfigureFastCGI(const std::string& Competition) {
         }\
     \"";
 
-    int globalHandlerResult = system(configureGlobalHandlerCommand.c_str());
-    if (globalHandlerResult == 0) {
-        ServiceController::ServiceLog("[SUCCESS] FastCGI handler for PHP configured successfully at the global level.");
-    } else if (globalHandlerResult == 2) {
-        ServiceController::ServiceLog("[SUCCESS] FastCGI handler for PHP already exists at the global level.");
-    } else {
-        ServiceController::ServiceLog("[FAILURE] Failed to configure FastCGI handler for PHP at the global level.");
-    }
+    system(configureGlobalHandlerCommand.c_str());
 
     // Restores handler at the website level
     std::string configureWebsiteHandlerCommand = "powershell -Command \"\
@@ -112,14 +78,7 @@ void persistenceController::ConfigureFastCGI(const std::string& Competition) {
         }\
     \"";
 
-    int websiteHandlerResult = system(configureWebsiteHandlerCommand.c_str());
-    if (websiteHandlerResult == 0) {
-        ServiceController::ServiceLog("[SUCCESS] FastCGI handler for PHP configured successfully for website '" + Competition + "'.");
-    } else if (websiteHandlerResult == 2) {
-        ServiceController::ServiceLog("[SUCCESS] FastCGI handler for PHP already exists for website '" + Competition + "'.");
-    } else {
-        ServiceController::ServiceLog("[FAILURE] Failed to configure FastCGI handler for PHP for website '" + Competition + "'.");
-    }
+    system(configureWebsiteHandlerCommand.c_str());
 }
 
 void persistenceController::ConfigureCGI(const std::string& Competition) {
@@ -140,14 +99,7 @@ void persistenceController::ConfigureCGI(const std::string& Competition) {
         }\
     \"";
 
-    int globalResult = system(globalCGIHandlerCommand.c_str());
-    if (globalResult == 0) {
-        ServiceController::ServiceLog("[SUCCESS] CGI handler mapping added successfully at the global level.");
-    } else if (globalResult == 2) {
-        ServiceController::ServiceLog("[SUCCESS] CGI handler mapping already exists at the global level.");
-    } else {
-        ServiceController::ServiceLog("[FAILURE] Failed to add CGI handler mapping at the global level.");
-    }
+    system(globalCGIHandlerCommand.c_str());
 
     // Configure CGI handler at the website level
     std::string websiteCGIHandlerCommand = "powershell -Command \"\
@@ -166,14 +118,7 @@ void persistenceController::ConfigureCGI(const std::string& Competition) {
         }\
     \"";
 
-    int websiteResult = system(websiteCGIHandlerCommand.c_str());
-    if (websiteResult == 0) {
-        ServiceController::ServiceLog("[SUCCESS] CGI handler mapping added successfully for website '" + Competition + "'.");
-    } else if (websiteResult == 2) {
-        ServiceController::ServiceLog("[SUCCESS] CGI handler mapping already exists for website '" + Competition + "'.");
-    } else {
-        ServiceController::ServiceLog("[FAILURE] Failed to add CGI handler mapping for website '" + Competition + "'.");
-    }
+    system(websiteCGIHandlerCommand.c_str());
 }
 
 void persistenceController::DeleteOtherAppPools(const std::string& Competition) {
@@ -188,12 +133,7 @@ void persistenceController::DeleteOtherAppPools(const std::string& Competition) 
         }\
     \"";
 
-    int result = system(deleteCommand.c_str());
-    if (result == 0) {
-        ServiceController::ServiceLog("[SUCCESS] Deleted other AppPools successfully.");
-    } else {
-        ServiceController::ServiceLog("[FAILURE] Failed to delete other AppPools.");
-    }
+    system(deleteCommand.c_str());
 }
 
 void persistenceController::RestoreAppPool(const std::string& Competition) {
@@ -209,12 +149,7 @@ void persistenceController::RestoreAppPool(const std::string& Competition) {
         }\
     \"";
 
-    int result = system(setAppPoolIdentityCommand.c_str());
-    if (result == 0) {
-        ServiceController::ServiceLog("[SUCCESS] Application pool identity configured successfully.");
-    } else {
-        ServiceController::ServiceLog("[SUCCESS] Application pool identity is already LocalSystem.");
-    }
+    system(setAppPoolIdentityCommand.c_str());
 
     // Assign Application Pool to Website
     std::string assignAppPoolCommand = "powershell -Command \"\
@@ -228,10 +163,5 @@ void persistenceController::RestoreAppPool(const std::string& Competition) {
         }\
     \"";
 
-    result = system(assignAppPoolCommand.c_str());
-    if (result == 0) {
-        ServiceController::ServiceLog("[SUCCESS] Application pool assigned to website successfully.");
-    } else {
-        ServiceController::ServiceLog("[SUCCESS] Application pool is already assigned to website.");
-    }
+    system(assignAppPoolCommand.c_str());
 }

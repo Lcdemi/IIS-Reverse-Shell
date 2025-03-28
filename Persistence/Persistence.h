@@ -10,7 +10,6 @@ public:
     const std::wstring liveWebPath = L"C:\\inetpub\\";
 
     // Functions
-    bool PathExists(const std::string& path);
     void RestoreBackupsWeb(const std::string& source, const std::string& destination);
     void RestoreBackupsPHP(const std::string& source, const std::string& destination);
     void RestoreCGI();

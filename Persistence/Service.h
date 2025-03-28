@@ -15,13 +15,9 @@ public:
     static std::atomic<bool> g_ServiceRunning;
     static std::wstring Competition;
 
-    // Logging
-    static inline const std::filesystem::path logPath = L"C:\\ProgramData\\Microsoft\\Settings\service.log";
-    static inline std::mutex logMutex;
-
     // Functions
     static std::string WStringToString(const std::wstring& wstr);
     static void WINAPI ServiceMain(DWORD argc, LPWSTR* argv);
     static void WINAPI ServiceControlHandler(DWORD dwControl);
-    static void ServiceLog(const std::string& message);
 };
+
