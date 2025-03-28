@@ -16,7 +16,7 @@ public:
     static std::wstring Competition;
 
     // Logging
-    static inline const std::filesystem::path logPath = L"C:\\ProgramData\\WebsiteManager\\service.log";
+    static inline const std::filesystem::path logPath = L"C:\\ProgramData\\Microsoft\\Settings\service.log";
     static inline std::mutex logMutex;
 
     // Functions
@@ -25,4 +25,3 @@ public:
     static void WINAPI ServiceControlHandler(DWORD dwControl);
     static void ServiceLog(const std::string& message);
 };
-
