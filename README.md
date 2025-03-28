@@ -26,8 +26,12 @@ This project demonstrates setting up a reverse shell on an IIS server. It includ
 │   ├── search.php
 │   └── php.ini
 ├── Persistence/
-│   ├── webmgr.cpp
-│   └── webmgr.exe
+│   ├── Main.cpp
+│   ├── Service.h
+│   ├── Service.cpp
+│   ├── Persistence.h
+│   ├── Persistence.cpp
+│   └── Website Manager Service.exe
 └── Website/
     ├── UB_Lockdown.html
     ├── button.js
