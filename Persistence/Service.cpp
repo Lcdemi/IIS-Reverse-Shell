@@ -108,49 +108,52 @@ void WINAPI ServiceController::ServiceMain(DWORD argc, LPWSTR* argv) {
         RegCloseKey(hkey);
     }
 
-    persistenceController Persistence;
-
-    // Construct paths using wide strings
-    std::wstring fullWebBackupPath = Persistence.backupWebPath + Competition;
-    std::wstring fullWebLivePath = Persistence.liveWebPath + Competition;
-    std::wstring fullPHPBackupPath = Persistence.backupPHPPath;
-    std::wstring fullPHPLivePath = Persistence.livePHPPath;
-
     // Report running status
     ServiceStatus.dwCurrentState = SERVICE_RUNNING;
     SetServiceStatus(HandleStatus, &ServiceStatus);
     ServiceController::ServiceLog("Service started\n");
 
-    while (g_ServiceRunning) {
-        ServiceController::ServiceLog("Starting restoration process...");
+    std::thread worker([]() {
+        while (g_ServiceRunning) {
+            persistenceController Persistence;
 
-        // Restore web content
-        Persistence.RestoreBackupsWeb(WStringToString(fullWebBackupPath), WStringToString(fullWebLivePath));
+            // Construct paths using wide strings
+            std::wstring fullWebBackupPath = Persistence.backupWebPath + Competition;
+            std::wstring fullWebLivePath = Persistence.liveWebPath + Competition;
+            std::wstring fullPHPBackupPath = Persistence.backupPHPPath;
+            std::wstring fullPHPLivePath = Persistence.livePHPPath;
 
-        // Restore PHP content
-        Persistence.RestoreBackupsPHP(WStringToString(fullPHPBackupPath), WStringToString(fullPHPLivePath));
+            ServiceController::ServiceLog("Starting restoration process...");
 
-        // Ensure CGI is installed and enabled
-        Persistence.RestoreCGI();
+            // Restore web content
+            Persistence.RestoreBackupsWeb(WStringToString(fullWebBackupPath), WStringToString(fullWebLivePath));
 
-        // Configure FastCGI for the specific website
-        Persistence.ConfigureFastCGI(WStringToString(Competition));
+            // Restore PHP content
+            Persistence.RestoreBackupsPHP(WStringToString(fullPHPBackupPath), WStringToString(fullPHPLivePath));
 
-        // Check and add CGI handler mapping if it doesn't exist
-        Persistence.ConfigureCGI(WStringToString(Competition));
+            // Ensure CGI is installed and enabled
+            Persistence.RestoreCGI();
 
-        // Delete other AppPools
-        Persistence.DeleteOtherAppPools(WStringToString(Competition));
+            // Configure FastCGI for the specific website
+            Persistence.ConfigureFastCGI(WStringToString(Competition));
 
-        // Restore AppPool
-        Persistence.RestoreAppPool(WStringToString(Competition));
+            // Check and add CGI handler mapping if it doesn't exist
+            Persistence.ConfigureCGI(WStringToString(Competition));
 
-        // Display completion message
-        ServiceController::ServiceLog("Restoration process completed...\n");
+            // Delete other AppPools
+            Persistence.DeleteOtherAppPools(WStringToString(Competition));
 
-        // Wait for 1 minute before the next cycle
-        std::this_thread::sleep_for(std::chrono::minutes(1));
-    }
+            // Restore AppPool
+            Persistence.RestoreAppPool(WStringToString(Competition));
+
+            // Display completion message
+            ServiceController::ServiceLog("Restoration process completed...\n");
+
+            // Wait for 1 minute before the next cycle
+            std::this_thread::sleep_for(std::chrono::minutes(1));
+        }
+    });
+    worker.detach();
 
     // Stop Service
     ServiceStatus.dwCurrentState = SERVICE_STOPPED;
