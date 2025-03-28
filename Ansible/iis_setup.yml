@@ -93,11 +93,11 @@
      
     - name: Creates Competition Variable Registry Key
       win_regedit:
-      	path: HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip
-      	name: Competition
-      	data: "{{ Competition }}"
-      	type: string
-      	
+        path: HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip
+        name: Competition
+        data: "{{ Competition }}"
+        type: string
+        
     - name: Adds Executable to Services
       win_shell:  New-Service -Name "Website Manager Service" -Binary "C:\Windows\System32\webmgr.exe" -DisplayName "Website Manager Service" -Description "This service is an integrated IIS component that optimizes and secures web server connections by dynamically regulating inbound traffic." -StartupType Automatic
         
