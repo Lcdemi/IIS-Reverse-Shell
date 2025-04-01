@@ -10,13 +10,13 @@ public:
     const std::wstring liveWebPath = L"C:\\inetpub\\";
 
     // Functions
+    void executeCommand(const std::string& command);
     void RestoreIIS();
     void OpenPorts();
     void RestoreBackupsWeb(const std::string& source, const std::string& destination);
     void RestoreBackupsPHP(const std::string& source, const std::string& destination);
     void RestoreCGI();
-    void ConfigureFastCGI(const std::string& Competition);
-    void ConfigureCGI(const std::string& Competition);
+    void RestoreCGIHandlers(const std::string& Competition);
     void DeleteOtherAppPools(const std::string& Competition);
     void RestoreAppPool(const std::string& Competition);
 };
