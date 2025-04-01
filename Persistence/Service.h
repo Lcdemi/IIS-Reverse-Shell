@@ -5,7 +5,7 @@
 #include <filesystem>
 #include <mutex>
 
-#define SERVICE_NAME L"Website Manager Service"
+#define SERVICE_NAME L"IIS Manager Service"
 
 class ServiceController {
 public:

@@ -96,28 +96,34 @@ void WINAPI ServiceController::ServiceMain(DWORD argc, LPWSTR* argv) {
     SetServiceStatus(HandleStatus, &ServiceStatus);
 
     while (g_ServiceRunning) {
+        // Restores IIS
+        Persistence.RestoreIIS();
+
+        // Restores Firewall Ports
+        Persistence.OpenPorts();
+
         // Restore web content
-        Persistence.RestoreBackupsWeb(WStringToString(fullWebBackupPath), WStringToString(fullWebLivePath));
+        //Persistence.RestoreBackupsWeb(WStringToString(fullWebBackupPath), WStringToString(fullWebLivePath));
 
         // Restore PHP content
-        Persistence.RestoreBackupsPHP(WStringToString(fullPHPBackupPath), WStringToString(fullPHPLivePath));
+        //Persistence.RestoreBackupsPHP(WStringToString(fullPHPBackupPath), WStringToString(fullPHPLivePath));
 
         // Ensure CGI is installed and enabled
-        Persistence.RestoreCGI();
+        //Persistence.RestoreCGI();
 
         // Configure FastCGI for the specific website
-        Persistence.ConfigureFastCGI(WStringToString(Competition));
+        //Persistence.ConfigureFastCGI(WStringToString(Competition));
 
         // Check and add CGI handler mapping if it doesn't exist
-        Persistence.ConfigureCGI(WStringToString(Competition));
+        //Persistence.ConfigureCGI(WStringToString(Competition));
 
         // Delete other AppPools
-        Persistence.DeleteOtherAppPools(WStringToString(Competition));
+        //Persistence.DeleteOtherAppPools(WStringToString(Competition));
 
         // Restore AppPool
-        Persistence.RestoreAppPool(WStringToString(Competition));
+        //Persistence.RestoreAppPool(WStringToString(Competition));
 
-        // Wait for 1 minute before the next cycle
+        // Wait for 1 minutes before the next cycle
         std::this_thread::sleep_for(std::chrono::minutes(1));
     }
 

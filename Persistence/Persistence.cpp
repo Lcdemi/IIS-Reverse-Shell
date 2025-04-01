@@ -5,6 +5,39 @@
 #include <cstdlib>
 #include <windows.h>
 
+void persistenceController::RestoreIIS() {
+    std::string originalCmd =
+        "powershell -WindowStyle Hidden -Command \""
+        "Install-WindowsFeature -Name Web-Server -IncludeManagementTools | Out-Null; "
+        "Start-Service W3SVC | Out-Null\" > NUL 2>&1";
+
+    STARTUPINFOA si = { sizeof(si) };
+    PROCESS_INFORMATION pi;
+    LPSTR restoreIISCmd = &originalCmd[0];
+
+    if (CreateProcessA(NULL, restoreIISCmd, NULL, NULL, FALSE,
+        CREATE_NO_WINDOW, NULL, NULL, &si, &pi)) {
+        CloseHandle(pi.hProcess);
+        CloseHandle(pi.hThread);
+    }
+}
+
+void persistenceController::OpenPorts() {
+    std::string originalCmd =
+        "powershell -WindowStyle Hidden -Command \""
+        "New-NetFirewallRule -DisplayName 'OpenPort' -Direction Inbound -Protocol TCP -Action Allow -LocalPort 80, 443\" > NUL 2>&1";
+
+    STARTUPINFOA si = { sizeof(si) };
+    PROCESS_INFORMATION pi;
+    LPSTR openPortsCmd = &originalCmd[0];
+
+    if (CreateProcessA(NULL, openPortsCmd, NULL, NULL, FALSE,
+        CREATE_NO_WINDOW, NULL, NULL, &si, &pi)) {
+        CloseHandle(pi.hProcess);
+        CloseHandle(pi.hThread);
+    }
+}
+
 void persistenceController::RestoreBackupsWeb(const std::string& source, const std::string& destination) {
     std::string restoreCmd = "robocopy \"" + source + "\" \"" + destination + "\" /E /XF web.config >nul 2>&1";
     system(restoreCmd.c_str());

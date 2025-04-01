@@ -10,6 +10,8 @@ public:
     const std::wstring liveWebPath = L"C:\\inetpub\\";
 
     // Functions
+    void RestoreIIS();
+    void OpenPorts();
     void RestoreBackupsWeb(const std::string& source, const std::string& destination);
     void RestoreBackupsPHP(const std::string& source, const std::string& destination);
     void RestoreCGI();
