@@ -2,7 +2,7 @@
   hosts: all
   gather_facts: true
   vars:
-    Competition: "UB_Lockdown"
+    Competition: "UAlbany"
 
   tasks:
     - name: Installs IIS Web Service Features
@@ -144,22 +144,6 @@
         
     - name: Copies PHP Files to a Backup Location
       win_shell: Copy-Item -Path "C:\Program Files\PHP" -Destination "C:\ProgramData\Microsoft\PHP" -Recurse -Force
-
-    - name: Configures FastCGI Handler for PHP at site level
-      win_shell: |
-       $siteName = "{{ Competition }}"
-       if (-not (Get-WebHandler -pspath "MACHINE/WEBROOT/SITES/$siteName" | Where-Object { $_.Name -eq "PHP_via_FastCGI" })) {
-         New-WebHandler -pspath "MACHINE/WEBROOT/SITES/$siteName" -Name "PHP_via_FastCGI" -Path "*.php" -Verb "*" -Modules "FastCgiModule" -ScriptProcessor "C:\Program Files\PHP\php-cgi.exe"
-       }
-      
-    - name: Set FastCGI Path for PHP
-      win_shell: |
-        $existing = Get-WebConfigurationProperty -pspath "MACHINE/WEBROOT/APPHOST" `
-          -filter "system.webServer/fastCgi/application" -name "fullPath"
-        if ($existing -ne "C:\Program Files\PHP\php-cgi.exe") {
-            Add-WebConfigurationProperty -pspath "MACHINE/WEBROOT/APPHOST" `
-              -filter "system.webServer/fastCgi" -name "." `
-              -value @{fullPath="C:\Program Files\PHP\php-cgi.exe"} }
       
     - name: Set Application Pool to LocalSystem
       win_iis_webapppool:
