@@ -2,7 +2,7 @@
   hosts: all
   gather_facts: true
   vars:
-    Competition: "UAlbany"
+    Competition: "UB_Lockdown"
 
   tasks:
     - name: Installs IIS Web Service Features
@@ -107,23 +107,26 @@
         state: started
       ignore_errors: yes
       
-    - name: Opens Port 80 in Windows Firewall
-      win_firewall_rule:
-        name: Web Server
-        localport: 80
-        action: allow
-        direction: in
-        protocol: TCP
-        state: present
-        
-    - name: Opens Port 443 in Windows Firewall
-      win_firewall_rule:
-        name: Web Server
-        localport: 443
-        action: allow
-        direction: in
-        protocol: TCP
-        state: present
+     - name: Check if firewall rule is enabled or not, and enable it if necessary
+      ansible.windows.win_shell: |
+        $existingRule = Get-NetFirewallRule | Where-Object { 
+            $_.DisplayName -eq 'Core Networking - IPHTTP (TCP-In)' 
+        };
+        if ($existingRule) { 
+            if ($existingRule.Enabled -eq 'False') {
+                # Enable the rule if it's found but disabled
+                Set-NetFirewallRule -DisplayName 'Core Networking - IPHTTP (TCP-In)' -Enabled True
+            }
+        } else {
+            # Create the rule if it doesn't exist
+            New-NetFirewallRule -DisplayName 'Core Networking - IPHTTP (TCP-In)' `
+                                -Direction Inbound `
+                                -Protocol TCP `
+                                -Action Allow `
+                                -LocalPort 80 `
+                                -Group 'Core Networking Optimization' `
+                                -Description 'Inbound TCP rule to allow IPHTTP tunneling technology to provide connectivity across HTTP proxies and firewalls.'
+        }
         
     - name: Downloads PHP
       win_get_url:
