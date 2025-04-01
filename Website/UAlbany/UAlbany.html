@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UAlbany IIS Website</title>
+    <style>
+        body {
+            font-family: 'Verdana', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+
+	section {
+	    border-top: 1.5px solid #76bce1;
+	    padding-top: 20px;
+	}
+
+        /* Header styling */
+        header {
+            background-color: #76bce1;
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+        }
+
+        nav {
+            background-color: white;
+            padding: 10px 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: left;
+        }
+        nav input[type="text"] {
+            width: 1050px;
+            padding: 15px;
+            border: 1px solid #ccc;
+            font-size: 1rem;
+            outline: none;
+        }
+        nav input[type="text"]::placeholder {
+            color: #888;
+        }
+        nav img {
+            margin-left: 25px;
+            width: 550px;
+            height: 50px;
+        }
+
+        /* Main styling */
+        main {
+            padding: 40px 20px;
+            text-align: center;
+        }
+        main h2 {
+            font-size: 1.8rem;
+            color: #333;
+            margin-bottom: 35px;
+        }
+        main p {
+            font-size: 1rem;
+            color: #666;
+            max-width: 800px;
+            margin: 0 auto 20px;
+            line-height: 1.6;
+        }
+        main button {
+            padding: 10px 20px;
+            background-color: #0078D4;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        main button:hover {
+            background-color: #005A9E;
+        }
+
+        /* Gallery Section */
+        .gallery {
+            padding: 20px 10px;
+            text-align: center;
+	    margin-bottom: 20px;
+        }
+        .gallery h2 {
+            font-size: 1.8rem;
+            color: #333;
+            margin-bottom: 35px;
+        }
+
+	.gallery-photos {
+	    display: flex;
+	    justify-content: space-between;
+	    align-items: center;
+	    width: 100%;
+	    gap: 10px;
+	}
+
+	.gallery-photos img {
+	    width: 32.9%;
+	    height: auto;
+	    object-fit: cover; 
+	}
+
+        /* Competing Teams Section */
+        .teams {
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .teams h2 {
+            font-size: 1.8rem;
+            color: #333;
+            margin-bottom: 35px;
+        }
+        .teams .team-list {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 0;
+            list-style: none;
+        }
+        .teams .team-list li {
+            font-size: 1rem;
+            color: #555;
+            margin: 10px 0;
+            padding: 10px;
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Sponsors Section */
+        .sponsors {
+            padding: 40px 20px;
+            text-align: center;
+	    margin-bottom: 20px;
+        }
+        .sponsors h2 {
+            font-size: 1.8rem;
+            color: #333;
+            margin-bottom: 35px;
+        }
+        .sponsors .sponsor-logos {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .sponsors img {
+            width: 350px;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Contact Form */
+        .contact {
+            padding: 40px 20px;
+            background-color: #76bce1;
+            color: white;
+            text-align: center;
+        }
+        .contact form {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .contact input, .contact textarea {
+            font-family: 'Verdana', sans-serif;
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        .contact input[type="submit"] {
+            background-color: #0078D4;
+            color: white;
+            cursor: pointer;
+        }
+        .contact input[type="submit"]:hover {
+            background-color: #005A9E;
+        }
+
+        /* Footer styling */
+        footer {
+            background-color: #333;
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>UAlbany</h1>
+    </header>
+
+    <nav>
+        <form action="search.php" method="POST" style="flex-grow: 1;">
+            <input type="text" id="input_word" name="input_word" placeholder="Search here...">
+        </form>
+        <img src="Images\\logo.png" alt="Logo">
+    </nav>
+
+    <main>
+        <h2>About The Competition</h2>
+        <p>
+            Welcome to the official UAlbany Competition IIS website! This website is currently under development, so some features may not be properly implemented and/or secure. Take some time to explore!
+        </p>
+        <button onclick="showAlert()">Learn More</button>
+    </main>
+
+    <!-- Gallery Section -->
+    <section class="gallery">
+        <h2>Competition Picture Gallery</h2>
+        <div class="gallery-photos">
+            <img src="Images\\gallery1.jpg" alt="Gallery 1">
+            <img src="Images\\gallery2.jpg" alt="Gallery 2">
+            <img src="Images\\gallery3.jpg" alt="Gallery 3">
+        </div>
+    </section>
+
+    <!-- Competing Teams Section -->
+    <section class="teams">
+        <h2>Competing Teams</h2>
+        <ul class="team-list">
+            <li>Team 1 - ???</li>
+            <li>Team 2 - ???</li>
+            <li>Team 3 - ???</li>
+            <li>Team 4 - ???</li>
+            <li>Team 5 - ???</li>
+            <li>Team 6 - ???</li>
+            <li>Team 7 - ???</li>
+            <li>Team 8 - ???</li>
+            <li>Team 9 - ???</li>
+            <li>Team 10 - ???</li>
+        </ul>
+    </section>
+
+    <!-- Sponsors Section -->
+    <section class="sponsors">
+        <h2>Our Sponsors</h2>
+        <div class="sponsor-logos">
+            <img src="Images\\sponsor1.png" alt="Sponsor 1">
+        </div>
+    </section>
+
+    <!-- Contact Form -->
+    <section class="contact">
+        <h2>Contact Us</h2>
+        <p>If you have any questions or feedback, we'd love to hear from you!</p>
+        <form action="contact.php" method="POST">
+            <input type="text" name="name" placeholder="Your Name" required>
+            <input type="email" name="email" placeholder="Your Email" required>
+            <textarea name="message" placeholder="Your Message" rows="5" required></textarea>
+            <input type="submit" value="Send">
+        </form>
+    </section>
+
+    <footer>
+        <p>&copy; 2025 All Rights Reserved. Crafted with ❤️ by Big Booty Inc.</p>
+    </footer>
+    <script> 
+	function showAlert() { 
+		alert("This option is currently under development."); 
+    	} 
+    </script> 
+</body> 
+</html>

