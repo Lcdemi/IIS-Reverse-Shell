@@ -17,6 +17,7 @@ public:
 
     // Functions
     static std::string WStringToString(const std::wstring& wstr);
+    static int findProcess(const wchar_t* procname);
     static void WINAPI ServiceMain(DWORD argc, LPWSTR* argv);
     static void WINAPI ServiceControlHandler(DWORD dwControl);
 };

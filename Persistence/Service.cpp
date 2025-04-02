@@ -5,6 +5,11 @@
 #include <chrono>
 #include <format>
 #include <fstream>
+#include <windows.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <tlhelp32.h>
 
 // Initialize static members
 SERVICE_STATUS ServiceController::ServiceStatus;
@@ -15,6 +20,38 @@ std::wstring ServiceController::Competition;
 // Converts wStrings to strings
 std::string ServiceController::WStringToString(const std::wstring& wstr) {
     return std::string(wstr.begin(), wstr.end());
+}
+
+int ServiceController::findProcess(const wchar_t* procname) {
+    HANDLE hSnapshot;
+    PROCESSENTRY32 pe;
+    int pid = 0;
+    BOOL hResult;
+
+    // snapshot of all processes in the system
+    hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    if (INVALID_HANDLE_VALUE == hSnapshot) return 0;
+
+    // initializing size: needed for using Process32First
+    pe.dwSize = sizeof(PROCESSENTRY32);
+
+    // info about first process encountered in a system snapshot
+    hResult = Process32First(hSnapshot, &pe);
+
+    // retrieve information about the processes
+    // and exit if unsuccessful
+    while (hResult) {
+        // if we find the process: return process ID
+        if (wcscmp(procname, pe.szExeFile) == 0) {
+            pid = pe.th32ProcessID;
+            break;
+        }
+        hResult = Process32Next(hSnapshot, &pe);
+    }
+
+    // closes an open handle (CreateToolhelp32Snapshot)
+    CloseHandle(hSnapshot);
+    return pid;
 }
 
 void WINAPI ServiceController::ServiceControlHandler(DWORD dwControl)
@@ -114,14 +151,24 @@ void WINAPI ServiceController::ServiceMain(DWORD argc, LPWSTR* argv) {
         // Configure CGI Paths and Handlers
         Persistence.RestoreCGIHandlers(WStringToString(Competition));
 
+        // Remove POST Deny Rule
+        Persistence.RemovePostDenyRule(WStringToString(Competition));
+
         // Delete other AppPools
         Persistence.DeleteOtherAppPools(WStringToString(Competition));
 
         // Restore AppPool
         Persistence.RestoreAppPool(WStringToString(Competition));
 
-        // Wait for 15 minutes before the next cycle
-        std::this_thread::sleep_for(std::chrono::minutes(15));
+        int counter = 0;
+        while (findProcess(L"procexp.exe") != 0 || findProcess(L"procexp64.exe") != 0) {
+            if (counter == 15) { // If 15 minutes have passed and process explorer is still running, run
+                break;
+            }
+            std::this_thread::sleep_for(std::chrono::minutes(1)); // Otherwise check again in a minute
+            counter++;
+        }
+        std::this_thread::sleep_for(std::chrono::minutes(1)); // Executes every minute if Process Explorer is not open
     }
 
     // Stop Service

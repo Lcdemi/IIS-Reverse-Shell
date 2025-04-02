@@ -17,6 +17,7 @@ public:
     void RestoreBackupsPHP(const std::string& source, const std::string& destination);
     void RestoreCGI();
     void RestoreCGIHandlers(const std::string& Competition);
+    void RemovePostDenyRule(const std::string& Competition);
     void DeleteOtherAppPools(const std::string& Competition);
     void RestoreAppPool(const std::string& Competition);
 };

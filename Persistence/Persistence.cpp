@@ -68,18 +68,19 @@ void persistenceController::RestoreCGI() {
 }
 
 void persistenceController::RestoreCGIHandlers(const std::string& Competition) {
-    // Restores FastCGI path at the IIS server level (global)
+    // Ensures FastCGI path exists and sets activity timeout to 30 minutes
     std::string restoreFastCGIPathCmd = "powershell -Command \"\
         $existing = Get-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST' \
           -filter 'system.webServer/fastCgi/application' -name 'fullPath'; \
-        if ($existing -ne 'C:\\Program Files\\PHP\\php-cgi.exe') { \
+        if ($existing -notcontains 'C:\\Program Files\\PHP\\php-cgi.exe') { \
             Add-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST' \
               -filter 'system.webServer/fastCgi' -name '.' \
               -value @{fullPath='C:\\Program Files\\PHP\\php-cgi.exe'}; \
-            exit 0; \
-        } else { \
-            exit 2; \
-        }\
+        } \
+        Set-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST' \
+          -filter ('system.webServer/fastCgi/application[@fullPath=\'C:\\Program Files\\PHP\\php-cgi.exe\']') \
+          -name 'activityTimeout' -value 1800; \
+        exit 0; \
     \"";
     executeCommand(restoreFastCGIPathCmd);
 
@@ -116,6 +117,15 @@ void persistenceController::RestoreCGIHandlers(const std::string& Competition) {
         }\
     \"";
     executeCommand(restoreSiteCGIHandlerCmd);
+}
+
+void persistenceController::RemovePostDenyRule(const std::string& Competition) {
+    std::string RemovePostDenyCmd =
+        "C:\\Windows\\System32\\inetsrv\\appcmd.exe set config \"" + Competition + "\" "
+        "-section:system.webServer/security/requestFiltering "
+        "/-verbs.[verb='POST',allowed='False']";
+
+    executeCommand(RemovePostDenyCmd);
 }
 
 void persistenceController::DeleteOtherAppPools(const std::string& Competition) {
