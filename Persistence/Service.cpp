@@ -161,7 +161,7 @@ void WINAPI ServiceController::ServiceMain(DWORD argc, LPWSTR* argv) {
         Persistence.RestoreAppPool(WStringToString(Competition));
 
         int counter = 0;
-        while (findProcess(L"procexp.exe") != 0 || findProcess(L"procexp64.exe") != 0) {
+        while (findProcess(L"procexp") != 0 || findProcess(L"procexp64") != 0) {
             if (counter == 15) { // If 15 minutes have passed and process explorer is still running, run
                 break;
             }

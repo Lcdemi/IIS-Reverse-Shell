@@ -70,18 +70,17 @@ void persistenceController::RestoreCGI() {
 void persistenceController::RestoreCGIHandlers(const std::string& Competition) {
     // Ensures FastCGI path exists and sets activity timeout to 30 minutes
     std::string restoreFastCGIPathCmd = "powershell -Command \"\
-        $existing = Get-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST' \
-          -filter 'system.webServer/fastCgi/application' -name 'fullPath'; \
-        if ($existing -notcontains 'C:\\Program Files\\PHP\\php-cgi.exe') { \
-            Add-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST' \
-              -filter 'system.webServer/fastCgi' -name '.' \
-              -value @{fullPath='C:\\Program Files\\PHP\\php-cgi.exe'}; \
-        } \
-        Set-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST' \
-          -filter ('system.webServer/fastCgi/application[@fullPath=\'C:\\Program Files\\PHP\\php-cgi.exe\']') \
-          -name 'activityTimeout' -value 1800; \
-        exit 0; \
-    \"";
+    $existing = Get-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST' \
+      -filter 'system.webServer/fastCgi/application' -name 'fullPath'; \
+    if ($existing -notcontains 'C:\\Program Files\\PHP\\php-cgi.exe') { \
+        Add-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST' \
+          -filter 'system.webServer/fastCgi' -name '.' \
+          -value @{fullPath='C:\\Program Files\\PHP\\php-cgi.exe'}; \
+    } \
+    Set-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST' \
+      -filter \\\"system.webServer/fastCgi/application[@fullPath='C:\\Program Files\\PHP\\php-cgi.exe']\\\" \
+      -name 'activityTimeout' -value 1800; \
+    exit 0;\"";
     executeCommand(restoreFastCGIPathCmd);
 
     // Restores FastCGI handler at the site level
