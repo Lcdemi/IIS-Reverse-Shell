@@ -97,7 +97,7 @@ all:
     ansible_winrm_server_cert_validation: ignore
 ```
 
-## 3. Configure Ansible Inventory
+## 3. Configure Competition Name
 Edit the iis_setup.yml file to include the name of the Competition:
 
 ```yaml
