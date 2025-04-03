@@ -68,6 +68,8 @@ void persistenceController::RestoreCGI() {
 }
 
 void persistenceController::RestoreCGIHandlers(const std::string& Competition) {
+    std::string escapedComp = "\"" + Competition + "\"";
+
     // Ensures FastCGI path exists and sets activity timeout to 30 minutes
     std::string restoreFastCGIPathCmd = "powershell -Command \"\
     $existing = Get-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST' \
@@ -85,7 +87,7 @@ void persistenceController::RestoreCGIHandlers(const std::string& Competition) {
 
     // Restores FastCGI handler at the site level
     std::string restoreSiteFastCGIHandlerCmd = "powershell -Command \"\
-        $handlerExists = Get-WebHandler -Location '" + Competition + "' | Where-Object { $_.Name -eq 'PHP_via_FastCGI' }; \
+        $handlerExists = Get-WebHandler -Location " + escapedComp + " | Where-Object { $_.Name -eq 'PHP_via_FastCGI' }; \
         if (-not $handlerExists) { \
             try { \
                 New-WebHandler -Name 'PHP_via_FastCGI' -Path '*.php' -Verb '*' -Modules 'FastCgiModule' -ScriptProcessor 'C:\\Program Files\\PHP\\php-cgi.exe' -Location '" + Competition + "' -ErrorAction Stop; \
@@ -101,10 +103,10 @@ void persistenceController::RestoreCGIHandlers(const std::string& Competition) {
 
     // Restores CGI handler at the site level
     std::string restoreSiteCGIHandlerCmd = "powershell -Command \"\
-        $cgiHandler = Get-WebHandler -Location '" + Competition + "' | Where-Object { $_.Name -eq 'CGI-exe' }; \
+        $cgiHandler = Get-WebHandler -Location " + escapedComp + " | Where-Object { $_.Name -eq 'CGI-exe' }; \
         if (-not $cgiHandler) { \
             try { \
-                Add-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST' -location '" + Competition + "' \
+                Add-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST' -location " + escapedComp + " \
                   -filter 'system.webServer/handlers' -name '.' \
                   -value @{name='CGI-exe'; path='*.exe'; verb='*'; modules='CgiModule'; resourceType='Unspecified'; allowPathInfo='false'}; \
                 exit 0; \
@@ -119,12 +121,13 @@ void persistenceController::RestoreCGIHandlers(const std::string& Competition) {
 }
 
 void persistenceController::RemovePostDenyRule(const std::string& Competition) {
+    std::string escapedComp = "\"" + Competition + "\"";
+
     // Remove POST deny rule at the site level
     std::string RemovePostDenyLocalCmd =
-        "C:\\Windows\\System32\\inetsrv\\appcmd.exe set config \"" + Competition + "\" "
+        "C:\\Windows\\System32\\inetsrv\\appcmd.exe set config " + escapedComp + " "
         "-section:system.webServer/security/requestFiltering "
         "/-verbs.[verb='POST',allowed='False']";
-
     executeCommand(RemovePostDenyLocalCmd);
 
     // Remove POST deny rule at the global IIS level
@@ -132,16 +135,17 @@ void persistenceController::RemovePostDenyRule(const std::string& Competition) {
         "C:\\Windows\\System32\\inetsrv\\appcmd.exe set config "
         "-section:system.webServer/security/requestFiltering "
         "/-verbs.[verb='POST',allowed='False']";
-
     executeCommand(RemovePostDenyGlobalCmd);
 }
 
 void persistenceController::DeleteOtherAppPools(const std::string& Competition) {
+    std::string escapedComp = "\"" + Competition + "\"";
+
     std::string deleteAppPoolsCmd = "powershell -Command \"\
         Import-Module WebAdministration; \
         $appPools = Get-ChildItem IIS:\\AppPools; \
         foreach ($pool in $appPools) { \
-            if ($pool.Name -ne '" + Competition + "') { \
+            if ($pool.Name -ne " + escapedComp + ") { \
                 Remove-WebAppPool -Name $pool.Name -ErrorAction SilentlyContinue; \
                 exit 0; \
             } \
@@ -151,29 +155,41 @@ void persistenceController::DeleteOtherAppPools(const std::string& Competition) 
 }
 
 void persistenceController::RestoreAppPool(const std::string& Competition) {
-    // Set Application Pool to LocalSystem
-    std::string restoreAppPoolsCmd = "powershell -Command \"\
+    std::string escapedComp = "\"" + Competition + "\"";
+
+    // 1. Set AppPool to LocalSystem (existing code)
+    std::string setIdentityCmd = "powershell -Command \"\
         Import-Module WebAdministration; \
-        $appPool = Get-Item IIS:\\AppPools\\" + Competition + "; \
+        $appPool = Get-Item ('IIS:\\AppPools\\' + " + escapedComp + "); \
         if ($appPool.processModel.identityType -ne 'LocalSystem') { \
-            Set-ItemProperty IIS:\\AppPools\\" + Competition + " -Name processModel.identityType -Value 'LocalSystem'; \
+            Set-ItemProperty ('IIS:\\AppPools\\' + " + escapedComp + ") -Name processModel.identityType -Value 'LocalSystem'; \
             exit 0; \
         } else { \
             exit 1; \
-        }\
-    \"";
-    executeCommand(restoreAppPoolsCmd);
+        }\"";
+    executeCommand(setIdentityCmd);
 
-    // Assign Application Pool to Website
+    // 2. Assign AppPool to Website (existing code)
     std::string assignAppPoolCmd = "powershell -Command \"\
         Import-Module WebAdministration; \
-        $website = Get-Item IIS:\\Sites\\" + Competition + "; \
-        if ($website.applicationPool -ne '" + Competition + "') { \
-            Set-ItemProperty IIS:\\Sites\\" + Competition + " -Name applicationPool -Value '" + Competition + "'; \
+        $website = Get-Item ('IIS:\\Sites\\' + " + escapedComp + "); \
+        if ($website.applicationPool -ne " + escapedComp + ") { \
+            Set-ItemProperty ('IIS:\\Sites\\' + " + escapedComp + ") -Name applicationPool -Value " + escapedComp + "; \
             exit 0; \
         } else { \
             exit 1; \
-        }\
-    \"";
+        }\"";
     executeCommand(assignAppPoolCmd);
+
+    // 3. Force start the AppPool and verify it's running
+    std::string startAppPoolCmd = "powershell -Command \"\
+        Import-Module WebAdministration; \
+        Start-WebAppPool -Name " + escapedComp + "; \
+        $pool = Get-Item ('IIS:\\AppPools\\' + " + escapedComp + "); \
+        if ($pool.state -eq 'Started') { \
+            exit 0; \
+        } else { \
+            exit 1; \
+        }\"";
+    executeCommand(startAppPoolCmd);
 }
