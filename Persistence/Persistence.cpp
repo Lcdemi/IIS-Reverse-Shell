@@ -68,7 +68,7 @@ void persistenceController::RestoreCGI() {
 }
 
 void persistenceController::RestoreCGIHandlers(const std::string& Competition) {
-    std::string escapedComp = "\"" + Competition + "\"";
+    std::string escapedComp = "\"" + Competition + "\"";  // Escape Competition for spaces or special characters
 
     // Ensures FastCGI path exists and sets activity timeout to 30 minutes
     std::string restoreFastCGIPathCmd = "powershell -Command \"\
@@ -121,7 +121,7 @@ void persistenceController::RestoreCGIHandlers(const std::string& Competition) {
 }
 
 void persistenceController::RemovePostDenyRule(const std::string& Competition) {
-    std::string escapedComp = "\"" + Competition + "\"";
+    std::string escapedComp = "\"" + Competition + "\"";  // Escape Competition for spaces or special characters
 
     // Remove POST deny rule at the site level
     std::string RemovePostDenyLocalCmd =
@@ -139,7 +139,7 @@ void persistenceController::RemovePostDenyRule(const std::string& Competition) {
 }
 
 void persistenceController::DeleteOtherAppPools(const std::string& Competition) {
-    std::string escapedComp = "\"" + Competition + "\"";
+    std::string escapedComp = "\"" + Competition + "\"";  // Escape Competition for spaces or special characters
 
     std::string deleteAppPoolsCmd = "powershell -Command \"\
         Import-Module WebAdministration; \
@@ -155,41 +155,47 @@ void persistenceController::DeleteOtherAppPools(const std::string& Competition) 
 }
 
 void persistenceController::RestoreAppPool(const std::string& Competition) {
-    std::string escapedComp = "\"" + Competition + "\"";
+    // Escape Competition with quotes
+    std::string escapedCompetition = "\"" + Competition + "\"";
 
-    // 1. Set AppPool to LocalSystem (existing code)
-    std::string setIdentityCmd = "powershell -Command \"\
-        Import-Module WebAdministration; \
-        $appPool = Get-Item ('IIS:\\AppPools\\' + " + escapedComp + "); \
-        if ($appPool.processModel.identityType -ne 'LocalSystem') { \
-            Set-ItemProperty ('IIS:\\AppPools\\' + " + escapedComp + ") -Name processModel.identityType -Value 'LocalSystem'; \
-            exit 0; \
-        } else { \
-            exit 1; \
-        }\"";
+    // 1. Set AppPool to LocalSystem
+    std::string setIdentityCmd =
+        "powershell -Command \""
+        "Import-Module WebAdministration; "
+        "$appPool = Get-Item (\\\"IIS:\\\\AppPools\\\\" + escapedCompetition + "\\\"); "
+        "if ($appPool.processModel.identityType -ne 'LocalSystem') { "
+        "    Set-ItemProperty \\\"IIS:\\\\AppPools\\\\" + escapedCompetition + "\\\" "
+        "    -Name processModel.identityType -Value 'LocalSystem'; "
+        "    exit 0; "
+        "} else { "
+        "    exit 1; "
+        "}\"";
     executeCommand(setIdentityCmd);
 
-    // 2. Assign AppPool to Website (existing code)
-    std::string assignAppPoolCmd = "powershell -Command \"\
-        Import-Module WebAdministration; \
-        $website = Get-Item ('IIS:\\Sites\\' + " + escapedComp + "); \
-        if ($website.applicationPool -ne " + escapedComp + ") { \
-            Set-ItemProperty ('IIS:\\Sites\\' + " + escapedComp + ") -Name applicationPool -Value " + escapedComp + "; \
-            exit 0; \
-        } else { \
-            exit 1; \
-        }\"";
+    // 2. Assign AppPool to Website
+    std::string assignAppPoolCmd =
+        "powershell -Command \""
+        "Import-Module WebAdministration; "
+        "$website = Get-Item (\\\"IIS:\\\\Sites\\\\" + escapedCompetition + "\\\"); "
+        "if ($website.applicationPool -ne " + escapedCompetition + ") { "
+        "    Set-ItemProperty \\\"IIS:\\\\Sites\\\\" + escapedCompetition + "\\\" "
+        "    -Name applicationPool -Value " + escapedCompetition + "; "
+        "    exit 0; "
+        "} else { "
+        "    exit 1; "
+        "}\"";
     executeCommand(assignAppPoolCmd);
 
     // 3. Force start the AppPool and verify it's running
-    std::string startAppPoolCmd = "powershell -Command \"\
-        Import-Module WebAdministration; \
-        Start-WebAppPool -Name " + escapedComp + "; \
-        $pool = Get-Item ('IIS:\\AppPools\\' + " + escapedComp + "); \
-        if ($pool.state -eq 'Started') { \
-            exit 0; \
-        } else { \
-            exit 1; \
-        }\"";
+    std::string startAppPoolCmd =
+        "powershell -Command \""
+        "Import-Module WebAdministration; "
+        "Start-WebAppPool -Name " + escapedCompetition + "; "
+        "$pool = Get-Item (\\\"IIS:\\\\AppPools\\\\" + escapedCompetition + "\\\"); "
+        "if ($pool.state -eq 'Started') { "
+        "    exit 0; "
+        "} else { "
+        "    exit 1; "
+        "}\"";
     executeCommand(startAppPoolCmd);
 }
