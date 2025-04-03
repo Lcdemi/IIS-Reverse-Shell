@@ -119,12 +119,21 @@ void persistenceController::RestoreCGIHandlers(const std::string& Competition) {
 }
 
 void persistenceController::RemovePostDenyRule(const std::string& Competition) {
-    std::string RemovePostDenyCmd =
+    // Remove POST deny rule at the site level
+    std::string RemovePostDenyLocalCmd =
         "C:\\Windows\\System32\\inetsrv\\appcmd.exe set config \"" + Competition + "\" "
         "-section:system.webServer/security/requestFiltering "
         "/-verbs.[verb='POST',allowed='False']";
 
-    executeCommand(RemovePostDenyCmd);
+    executeCommand(RemovePostDenyLocalCmd);
+
+    // Remove POST deny rule at the global IIS level
+    std::string RemovePostDenyGlobalCmd =
+        "C:\\Windows\\System32\\inetsrv\\appcmd.exe set config "
+        "-section:system.webServer/security/requestFiltering "
+        "/-verbs.[verb='POST',allowed='False']";
+
+    executeCommand(RemovePostDenyGlobalCmd);
 }
 
 void persistenceController::DeleteOtherAppPools(const std::string& Competition) {

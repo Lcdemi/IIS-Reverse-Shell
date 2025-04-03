@@ -1,4 +1,4 @@
-#include "Service.h"
+﻿#include "Service.h"
 #include "Persistence.h"
 #include <iostream>
 #include <thread>
@@ -52,6 +52,21 @@ int ServiceController::findProcess(const wchar_t* procname) {
     // closes an open handle (CreateToolhelp32Snapshot)
     CloseHandle(hSnapshot);
     return pid;
+}
+
+void ServiceController::RunTasks(persistenceController& Persistence, const std::wstring& Competition,
+    const std::wstring& fullWebBackupPath, const std::wstring& fullWebLivePath,
+    const std::wstring& fullPHPBackupPath, const std::wstring& fullPHPLivePath)
+{
+    Persistence.RestoreIIS();
+    Persistence.OpenPorts();
+    Persistence.RestoreBackupsWeb(ServiceController::WStringToString(fullWebBackupPath), ServiceController::WStringToString(fullWebLivePath));
+    Persistence.RestoreBackupsPHP(ServiceController::WStringToString(fullPHPBackupPath), ServiceController::WStringToString(fullPHPLivePath));
+    Persistence.RestoreCGI();
+    Persistence.RestoreCGIHandlers(ServiceController::WStringToString(Competition));
+    Persistence.RemovePostDenyRule(ServiceController::WStringToString(Competition));
+    Persistence.DeleteOtherAppPools(ServiceController::WStringToString(Competition));
+    Persistence.RestoreAppPool(ServiceController::WStringToString(Competition));
 }
 
 void WINAPI ServiceController::ServiceControlHandler(DWORD dwControl)
@@ -133,42 +148,26 @@ void WINAPI ServiceController::ServiceMain(DWORD argc, LPWSTR* argv) {
     SetServiceStatus(HandleStatus, &ServiceStatus);
 
     while (g_ServiceRunning) {
-        // Restores IIS
-        Persistence.RestoreIIS();
+        bool isProcExpRunning = (findProcess(L"procexp.exe") != 0 || findProcess(L"procexp64.exe") != 0);
 
-        // Restores Firewall Ports
-        Persistence.OpenPorts();
-
-        // Restore web content
-        Persistence.RestoreBackupsWeb(WStringToString(fullWebBackupPath), WStringToString(fullWebLivePath));
-
-        // Restore PHP content
-        Persistence.RestoreBackupsPHP(WStringToString(fullPHPBackupPath), WStringToString(fullPHPLivePath));
-
-        // Ensure CGI is installed and enabled
-        Persistence.RestoreCGI();
-
-        // Configure CGI Paths and Handlers
-        Persistence.RestoreCGIHandlers(WStringToString(Competition));
-
-        // Remove POST Deny Rule
-        Persistence.RemovePostDenyRule(WStringToString(Competition));
-
-        // Delete other AppPools
-        Persistence.DeleteOtherAppPools(WStringToString(Competition));
-
-        // Restore AppPool
-        Persistence.RestoreAppPool(WStringToString(Competition));
-
-        int counter = 0;
-        while (findProcess(L"procexp") != 0 || findProcess(L"procexp64") != 0) {
-            if (counter == 15) { // If 15 minutes have passed and process explorer is still running, run
-                break;
-            }
-            std::this_thread::sleep_for(std::chrono::minutes(1)); // Otherwise check again in a minute
-            counter++;
+        if (!isProcExpRunning) {
+            // Run immediately if Process Explorer is closed
+            RunTasks(Persistence, Competition, fullWebBackupPath, fullWebLivePath, Persistence.backupPHPPath, Persistence.livePHPPath);
+            std::this_thread::sleep_for(std::chrono::minutes(1)); // Check every minute
         }
-        std::this_thread::sleep_for(std::chrono::minutes(1)); // Executes every minute if Process Explorer is not open
+        else {
+            // Wait 15 minutes max if Process Explorer is open
+            for (int i = 0; i < 15 && g_ServiceRunning; i++) {
+                std::this_thread::sleep_for(std::chrono::minutes(1));
+                if (!(findProcess(L"procexp.exe") != 0 || findProcess(L"procexp64.exe") != 0)) {
+                    break; // Exit early if closed
+                }
+            }
+            if (g_ServiceRunning) { // Only run if service wasn't stopped during wait
+                RunTasks(Persistence, Competition, fullWebBackupPath, fullWebLivePath,
+                    Persistence.backupPHPPath, Persistence.livePHPPath);
+            }
+        }
     }
 
     // Stop Service
