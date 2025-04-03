@@ -2,7 +2,7 @@
   hosts: all
   gather_facts: true
   vars:
-    Competition: "UAlbany"
+    Competition: "Empire State Health"
 
   tasks:
     - name: Installs IIS Web Service Features
