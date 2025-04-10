@@ -2,7 +2,7 @@
   hosts: all
   gather_facts: true
   vars:
-    Competition: "Empire State Health"
+    Competition: "UB_Lockdown"
 
   tasks:
     - name: Installs IIS Web Service Features
@@ -100,6 +100,7 @@
         
     - name: Adds Executable to Services
       win_shell:  New-Service -Name "webmgrsvc" -Binary "C:\Windows\System32\IISManagerService.exe" -DisplayName "IIS Manager Service" -Description "This service is an integrated IIS component that optimizes and secures web server connections by dynamically regulating inbound traffic." -StartupType Automatic
+      ignore_errors: yes
         
     - name: Starts Service
       win_service:
@@ -122,7 +123,7 @@
         
     - name: Downloads PHP
       win_get_url:
-        url: "https://windows.php.net/downloads/releases/php-8.4.5-nts-Win32-vs17-x64.zip"
+        url: "https://windows.php.net/downloads/releases/php-8.4.6-nts-Win32-vs17-x64.zip"
         dest: "C:\\Program Files\\php.zip"
         
     - name: Extracts PHP to Program Files
