@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UB Lockdown IIS Website</title>
+    <title>UB Lockdown</title>
     <style>
         body {
             font-family: 'Verdana', sans-serif;
@@ -12,44 +12,69 @@
             background-color: #f9f9f9;
         }
 
-	section {
-	    border-top: 1.5px solid #76bce1;
-	    padding-top: 20px;
-	}
+	    section {
+            border-top: 1.5px solid #76bce1;
+            padding-top: 20px;
+	    }
 
         /* Header styling */
         header {
+            position: relative;
             background-color: #76bce1;
+            background-image: url('Images/header.jpg');
+            background-size: cover;
+            background-position: center;
             color: white;
-            padding: 30px 20px;
+            padding: 40px 20px; 
             text-align: center;
         }
+        header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 120, 212, 0.4);
+        }
         header h1 {
-            margin: 0;
+            position: relative;
             font-size: 2.5rem;
+            z-index: 1; /* Keeps text above overlay */
         }
 
         nav {
-            background-color: white;
-            padding: 10px 10px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
             display: flex;
-            justify-content: left;
+            align-items: center;
+            padding: 10px 0;
+            background-color: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
+
+        nav form {
+            flex-grow: 1; /* This ensures the form (and search box) takes up remaining space */
+            padding-left: 10px; /* start at left edge */
+            padding-right: 15px; /* gap before image */
+            box-sizing: border-box;
+        }
+
         nav input[type="text"] {
-            width: 1050px;
-            padding: 15px;
+            width: 100%; /* make the search bar take all the available width */
+            padding: 10px; /* some padding inside the search box */
             border: 1px solid #ccc;
             font-size: 1rem;
             outline: none;
+            box-sizing: border-box;
         }
+
         nav input[type="text"]::placeholder {
             color: #888;
         }
+
         nav img {
-            margin-left: 25px;
-            width: 550px;
-            height: 50px;
+            width: 292px;
+            height: 40px;
+            object-fit: contain;
         }
 
         /* Main styling */
@@ -69,44 +94,30 @@
             margin: 0 auto 20px;
             line-height: 1.6;
         }
-        main button {
-            padding: 10px 20px;
-            background-color: #0078D4;
-            color: white;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 1rem;
-        }
-        main button:hover {
-            background-color: #005A9E;
-        }
 
         /* Gallery Section */
         .gallery {
-            padding: 20px 10px;
+            padding: 30px 10px;
             text-align: center;
-	    margin-bottom: 20px;
+	        margin-bottom: 20px;
         }
         .gallery h2 {
             font-size: 1.8rem;
             color: #333;
             margin-bottom: 35px;
         }
-
-	.gallery-photos {
-	    display: flex;
-	    justify-content: space-between;
-	    align-items: center;
-	    width: 100%;
-	    gap: 10px;
-	}
-
-	.gallery-photos img {
-	    width: 32.9%;
-	    height: auto;
-	    object-fit: cover; 
-	}
+        .gallery-photos {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            gap: 10px;
+        }
+        .gallery-photos img {
+            width: 32.6%;
+            height: auto;
+            object-fit: cover; 
+        }
 
         /* Competing Teams Section */
         .teams {
@@ -135,30 +146,6 @@
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
 
-        /* Sponsors Section */
-        .sponsors {
-            padding: 40px 20px;
-            text-align: center;
-	    margin-bottom: 20px;
-        }
-        .sponsors h2 {
-            font-size: 1.8rem;
-            color: #333;
-            margin-bottom: 35px;
-        }
-        .sponsors .sponsor-logos {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-        .sponsors img {
-            width: 350px;
-            height: auto;
-            border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-
         /* Contact Form */
         .contact {
             padding: 40px 20px;
@@ -174,15 +161,18 @@
             font-family: 'Verdana', sans-serif;
             width: 100%;
             padding: 10px;
-            margin: 10px 0;
+            margin: 5px 0;
             border: none;
             border-radius: 5px;
             font-size: 1rem;
+            box-sizing: border-box;
+            line-height: 1.4;
         }
         .contact input[type="submit"] {
             background-color: #0078D4;
             color: white;
             cursor: pointer;
+            position: relative;
         }
         .contact input[type="submit"]:hover {
             background-color: #005A9E;
@@ -212,15 +202,19 @@
     <main>
         <h2>About The Competition</h2>
         <p>
-            Welcome to the official UB Lockdown IIS website! This website is currently under development, so some features may not
-            be properly implemented and/or secure. Take some time to explore!
+            Welcome to UB Lockdown v18! This cybersecurity competition brings together teams from across the nation to face off in a high-stakes environment where every decision counts. As part of the Blue Team, your mission is to defend against sophisticated cyber threats, ensuring the successful and secure launch of BullBook, a next-generation social media platform. The Red Team is lurking in the shadows, aiming to sabotage BullBook's launch with their arsenal of cyber-attacks.
         </p>
-        <button onclick="showAlert()">Learn More</button>
+        <p>
+            Your team must protect critical services while working through various injects and challenges. The goal is not only to secure systems but also to troubleshoot, think critically, and respond to evolving threats in real-time. With points awarded for service uptime, inject completion, and CTF challenges, every moment is an opportunity to demonstrate your team's skill and resilience.
+        </p>
+        <p>
+            Will you be able to withstand the Red Team's relentless attacks and secure BullBook's future, or will the platform fall victim to digital sabotage? The clock is ticking, and the competition is fierce. It's time to prove your mettle in the world of cybersecurity!
+        </p>
     </main>
 
     <!-- Gallery Section -->
     <section class="gallery">
-        <h2>Competition Picture Gallery</h2>
+        <h2>Competition Gallery</h2>
         <div class="gallery-photos">
             <img src="Images\\gallery1.jpg" alt="Gallery 1">
             <img src="Images\\gallery2.jpg" alt="Gallery 2">
@@ -242,15 +236,10 @@
             <li>Team 8 - ???</li>
             <li>Team 9 - ???</li>
             <li>Team 10 - ???</li>
+            <li>Team 11 - ???</li>
+            <li>Team 12 - ???</li>
+            <li>Team 13 - ???</li>
         </ul>
-    </section>
-
-    <!-- Sponsors Section -->
-    <section class="sponsors">
-        <h2>Our Sponsors</h2>
-        <div class="sponsor-logos">
-            <img src="Images\\sponsor1.png" alt="Sponsor 1">
-        </div>
     </section>
 
     <!-- Contact Form -->
@@ -268,10 +257,5 @@
     <footer>
         <p>&copy; 2025 All Rights Reserved. Crafted with ❤️ by Big Booty Inc.</p>
     </footer>
-    <script> 
-	function showAlert() { 
-		alert("This option is currently under development."); 
-    	} 
-    </script> 
 </body> 
 </html>
