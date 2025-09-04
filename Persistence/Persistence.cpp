@@ -138,21 +138,22 @@ void persistenceController::RemovePostDenyRule(const std::string& Competition) {
     executeCommand(RemovePostDenyGlobalCmd);
 }
 
-void persistenceController::DeleteOtherAppPools(const std::string& Competition) {
-    std::string escapedComp = "\"" + Competition + "\"";  // Escape Competition for spaces or special characters
-
-    std::string deleteAppPoolsCmd = "powershell -Command \"\
-        Import-Module WebAdministration; \
-        $appPools = Get-ChildItem IIS:\\AppPools; \
-        foreach ($pool in $appPools) { \
-            if ($pool.Name -ne " + escapedComp + ") { \
-                Remove-WebAppPool -Name $pool.Name -ErrorAction SilentlyContinue; \
-                exit 0; \
-            } \
-        }\
-    \"";
-    executeCommand(deleteAppPoolsCmd);
-}
+// removed for now until I figure out how to make both the red team website and competition website run on the same appPool.
+//void persistenceController::DeleteOtherAppPools(const std::string& Competition) {
+//    std::string escapedComp = "\"" + Competition + "\"";  // Escape Competition for spaces or special characters
+//
+//    std::string deleteAppPoolsCmd = "powershell -Command \"\
+//        Import-Module WebAdministration; \
+//        $appPools = Get-ChildItem IIS:\\AppPools; \
+//        foreach ($pool in $appPools) { \
+//            if ($pool.Name -ne " + escapedComp + ") { \
+//                Remove-WebAppPool -Name $pool.Name -ErrorAction SilentlyContinue; \
+//                exit 0; \
+//            } \
+//        }\
+//    \"";
+//    executeCommand(deleteAppPoolsCmd);
+//}
 
 void persistenceController::RestoreAppPool(const std::string& Competition) {
     // Escape Competition with quotes

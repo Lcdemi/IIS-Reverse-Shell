@@ -30,16 +30,6 @@
         path: "C:\\vc_redist.x64.exe"
         state: absent
 
-    - name: Removes the Default IIS Website
-      win_iis_website:
-        name: "Default Web Site"
-        state: absent
-        
-    - name: Removes Default Application Pool
-      win_iis_webapppool:
-        name: "DefaultAppPool"
-        state: absent
-
     - name: Creates IIS Web Root Directory
       win_file:
         path: "C:\\inetpub\\{{ Competition }}"

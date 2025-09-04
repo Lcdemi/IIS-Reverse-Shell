@@ -18,6 +18,6 @@ public:
     void RestoreCGI();
     void RestoreCGIHandlers(const std::string& Competition);
     void RemovePostDenyRule(const std::string& Competition);
-    void DeleteOtherAppPools(const std::string& Competition);
+    // void DeleteOtherAppPools(const std::string& Competition);
     void RestoreAppPool(const std::string& Competition);
 };
