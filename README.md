@@ -15,28 +15,44 @@ This project demonstrates setting up a reverse shell on an IIS server. It includ
 │   ├── inventory.yml
 │   └── ansible.cfg
 ├── Images/
-│   └── UB_Lockdown/
+│   ├── UB_Lockdown/
+│   │   ├── gallery1.jpg
+│   │   ├── gallery2.jpg
+│   │   ├── gallery3.jpg
+│   │   ├── Sponsor1.png
+│   │   └── logo.png
+│   └── Empire State Health/
 │       ├── gallery1.jpg
 │       ├── gallery2.jpg
 │       ├── gallery3.jpg
-│       ├── Sponsor1.png
-│       └── logo.png
+│       ├── header.jpg
+│       ├── logo.png
+│       └── sponsor1.png
 ├── PHP/
 │   ├── contact.php
 │   ├── search.php
 │   └── php.ini
 ├── Persistence/
-│   ├── webmgr.cpp
-│   └── webmgr.exe
+│   ├── Main.cpp
+│   ├── Service.h
+│   ├── Service.cpp
+│   ├── Persistence.h
+│   ├── Persistence.cpp
+│   └── IISManagerService.exe
 └── Website/
-    ├── UB_Lockdown.html
-    ├── button.js
-    └── web.config
+    ├── UB_Lockdown/
+    │   ├── UB_Lockdown.html
+    │   ├── button.js
+    │   └── web.config
+    └── Empire State Health/
+        ├── Empire State Health.html
+        ├── button.js
+        └── web.config
 </pre>
 
 ### Directory Breakdown
 - **`Ansible/`**: Contains playbooks and inventory files for automating server setup.
-- **`Images/UB_Lockdown/`**: Directory with images used in the website.
+- **`Images/`**: Directory with images used in the website.
 - **`PHP/`**: Contains the PHP script for the reverse shell.
 - **`Persistence/`**: Contains the C++ executable service that maintains persistence on the server.
 - **`Website/`**: HTML and CSS files for the website's frontend.
@@ -81,14 +97,25 @@ all:
     ansible_winrm_server_cert_validation: ignore
 ```
 
-## 3. Run the Ansible Playbook
+## 3. Configure Competition Name
+Edit the iis_setup.yml file to include the name of the Competition:
+
+```yaml
+ name: IIS Reverse Shell Server Configuration
+  hosts: all
+  gather_facts: true
+  vars:
+    Competition: "[Your Competition Name]"
+```
+
+## 4. Run the Ansible Playbook
 To set up the IIS server and deploy the website, execute the following command:
 
 ```sh
 ansible-playbook -i inventory.yml iis_setup.yml
 ```
 
-## 4. Spawn a Reverse Shell
+## 5. Spawn a Reverse Shell
 To spawn a reverse shell, follow these steps:
 
 1. **Set Up a Listener**: On your machine, start a listener using a tool like `netcat`. For example:
