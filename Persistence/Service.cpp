@@ -42,7 +42,7 @@ int ServiceController::findProcess(const wchar_t* procname) {
     // and exit if unsuccessful
     while (hResult) {
         // if we find the process: return process ID
-        if (wcscmp(procname, pe.szExeFile) == 0) {
+        if (strcmp(ServiceController::WStringToString(procname).c_str(), pe.szExeFile) == 0) {
             pid = pe.th32ProcessID;
             break;
         }
