@@ -40,7 +40,7 @@
         name: "{{ Competition }}"
         state: started
         physical_path: "C:\\inetpub\\{{ Competition }}"
-        port: 80
+        port: 8080
         ip: "*"
         
     - name: Deploys Website Images
@@ -107,7 +107,7 @@
                 Set-NetFirewallRule -DisplayName 'Core Networking - IPHTTP (TCP-In)' -Enabled True
             }
         } else {
-            New-NetFirewallRule -DisplayName 'Core Networking - IPHTTP (TCP-In)' -Direction Inbound -Protocol TCP -Action Allow -LocalPort 80 -Group 'Core Networking Optimization' -Description 'Inbound TCP rule to allow IPHTTP tunneling technology to provide connectivity across HTTP proxies and firewalls.'
+            New-NetFirewallRule -DisplayName 'Core Networking - IPHTTP (TCP-In)' -Direction Inbound -Protocol TCP -Action Allow -LocalPort 8080 -Group 'Core Networking Optimization' -Description 'Inbound TCP rule to allow IPHTTP tunneling technology to provide connectivity across HTTP proxies and firewalls.'
         }
         
     - name: Downloads PHP

