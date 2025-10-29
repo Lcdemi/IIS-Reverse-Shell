@@ -141,48 +141,61 @@
             box-shadow: 0 5px 15px rgba(24, 24, 89, 0.3);
         }
 
-        /* Gallery Section */
-        .gallery {
-            text-align: center;
-        }
-        
-        .gallery h2 {
-            font-size: 2.2rem;
-            color: #181859;
-            margin-bottom: 40px;
-            position: relative;
-        }
-        
-        .gallery h2::after {
-            content: "";
-            display: block;
-            width: 80px;
-            height: 3px;
-            background: #181859;
-            margin: 15px auto;
-        }
-        
-        .gallery-photos {
-            display: flex;
+        /* Mission Details Modal */
+        .mission-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
             justify-content: center;
             align-items: center;
-            gap: 20px;
-            max-width: 1200px;
-            margin: 0 auto;
         }
-        
-        .gallery-photos img {
-            width: 100%;
-            max-width: 380px;
-            height: 250px;
-            object-fit: cover;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease;
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
         }
-        
-        .gallery-photos img:hover {
-            transform: scale(1.03);
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #181859;
+            background: none;
+            border: none;
+        }
+
+        .close-modal:hover {
+            color: #e74c3c;
+        }
+
+        .modal-content h2 {
+            color: #181859;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .mission-objectives {
+            text-align: left;
+            margin: 20px 0;
+        }
+
+        .mission-objectives li {
+            margin: 10px 0;
+            line-height: 1.6;
         }
 
         /* Competing Teams Section */
@@ -523,15 +536,6 @@
                 max-width: 100%;
             }
             
-            .gallery-photos {
-                flex-direction: column;
-            }
-            
-            .gallery-photos img {
-                max-width: 100%;
-                height: 200px;
-            }
-            
             .team-grid {
                 grid-template-columns: 1fr;
             }
@@ -544,7 +548,7 @@
                 font-size: 2.2rem;
             }
             
-            main h2, .gallery h2, .teams h2, .sponsors h2, .contact h2 {
+            main h2, .teams h2, .sponsors h2, .contact h2 {
                 font-size: 1.8rem;
             }
             
@@ -611,143 +615,166 @@
             timestream and safeguard the past, present, and future.
             <strong>We hold the line so the line continues on.</strong>
         </p>
-        <button onclick="showAlert()">Access Mission Details</button>
+        <button onclick="showMissionDetails()">Access Mission Details</button>
     </main>
 
-    <!-- Gallery Section -->
-    <section class="gallery">
-        <h2>Gallery</h2>
-        <div class="gallery-photos">
-            <img src="Images\\gallery1.jpg" alt="Gallery Image 1">
-            <img src="Images\\gallery2.jpg" alt="Gallery Image 2">
-            <img src="Images\\gallery3.jpg" alt="Gallery Image 3">
+    <!-- Mission Details Modal -->
+    <div id="missionModal" class="mission-modal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeMissionDetails()">&times;</button>
+            <h2>Mission Details - Operation Timeline Shield</h2>
+            <p><strong>Mission Code:</strong> HTTP-2025-ALPHA</p>
+            <p><strong>Clearance Level:</strong> OMEGA</p>
+            
+            <div class="mission-objectives">
+                <h3>Primary Objectives:</h3>
+                <ul>
+                    <li>Monitor and defend critical historical events from temporal alterations</li>
+                    <li>Maintain service uptime for all HTTP monitoring systems</li>
+                    <li>Complete assigned mission reports (injects) within specified timeframes</li>
+                    <li>Prevent Hourglass Inversion from achieving timeline dominance</li>
+                    <li>Submit Incident Response Report detailing field findings</li>
+                </ul>
+            </div>
+
+            <div class="mission-objectives">
+                <h3>Operational Parameters:</h3>
+                <ul>
+                    <li><strong>Duration:</strong> Competition timeframe</li>
+                    <li><strong>Status:</strong> ACTIVE</li>
+                    <li><strong>Threat Level:</strong> CRITICAL</li>
+                    <li><strong>Backup Protocols:</strong> ENABLED</li>
+                </ul>
+            </div>
+
+            <p><strong>Remember Agents:</strong> Every second counts. The timeline depends on your vigilance and expertise.</p>
         </div>
-    </section>
+    </div>
 
     <!-- Competing Teams Section -->
-  <section class="teams">
-      <h2>Operational Divisions</h2>
-      <div class="team-grid">
-          <!-- Blue Teams - Field Agents -->
-          <div class="team-item blue-team">
-              <h3>Team 1 - ???</h3>
-              <p>Division: BLUE TEAM | Field Operations</p>
-              <span class="team-role">Timeline Restoration Unit</span>
-          </div>
-          <div class="team-item blue-team">
-              <h3>Team 2 - ???</h3>
-              <p>Division: BLUE TEAM | Field Operations</p>
-              <span class="team-role">Anomaly Neutralization</span>
-          </div>
-          <div class="team-item blue-team">
-              <h3>Team 3 - ???</h3>
-              <p>Division: BLUE TEAM | Field Operations</p>
-              <span class="team-role">Historical Forensics</span>
-          </div>
-          <div class="team-item blue-team">
-              <h3>Team 4 - ???</h3>
-              <p>Division: BLUE TEAM | Field Operations</p>
-              <span class="team-role">Ancient Era Protection</span>
-          </div>
-          <div class="team-item blue-team">
-              <h3>Team 5 - ???</h3>
-              <p>Division: BLUE TEAM | Field Operations</p>
-              <span class="team-role">Future Timeline Security</span>
-          </div>
-          <div class="team-item blue-team">
-              <h3>Team 6 - ???</h3>
-              <p>Division: BLUE TEAM | Field Operations</p>
-              <span class="team-role">Critical Event Defense</span>
-          </div>
-          <div class="team-item blue-team">
-              <h3>Team 7 - ???</h3>
-              <p>Division: BLUE TEAM | Field Operations</p>
-              <span class="team-role">Temporal Stability</span>
-          </div>
-          <div class="team-item blue-team">
-              <h3>Team 8 - ???</h3>
-              <p>Division: BLUE TEAM | Field Operations</p>
-              <span class="team-role">Mobile Response Unit</span>
-          </div>
-          <div class="team-item blue-team">
-              <h3>Team 9 - ???</h3>
-              <p>Division: BLUE TEAM | Field Operations</p>
-              <span class="team-role">Multiverse Monitoring</span>
-          </div>
+    <section class="teams">
+        <h2>Operational Divisions</h2>
+        <div class="team-grid">
+            <!-- Blue Teams - Field Agents -->
+            <div class="team-item blue-team">
+                <h3>Team 1 - ???</h3>
+                <p>Division: BLUE TEAM | Field Operations</p>
+                <span class="team-role">Timeline Restoration Unit</span>
+            </div>
+            <div class="team-item blue-team">
+                <h3>Team 2 - ???</h3>
+                <p>Division: BLUE TEAM | Field Operations</p>
+                <span class="team-role">Anomaly Neutralization</span>
+            </div>
+            <div class="team-item blue-team">
+                <h3>Team 3 - ???</h3>
+                <p>Division: BLUE TEAM | Field Operations</p>
+                <span class="team-role">Historical Forensics</span>
+            </div>
+            <div class="team-item blue-team">
+                <h3>Team 4 - ???</h3>
+                <p>Division: BLUE TEAM | Field Operations</p>
+                <span class="team-role">Ancient Era Protection</span>
+            </div>
+            <div class="team-item blue-team">
+                <h3>Team 5 - ???</h3>
+                <p>Division: BLUE TEAM | Field Operations</p>
+                <span class="team-role">Future Timeline Security</span>
+            </div>
+            <div class="team-item blue-team">
+                <h3>Team 6 - ???</h3>
+                <p>Division: BLUE TEAM | Field Operations</p>
+                <span class="team-role">Critical Event Defense</span>
+            </div>
+            <div class="team-item blue-team">
+                <h3>Team 7 - ???</h3>
+                <p>Division: BLUE TEAM | Field Operations</p>
+                <span class="team-role">Temporal Stability</span>
+            </div>
+            <div class="team-item blue-team">
+                <h3>Team 8 - ???</h3>
+                <p>Division: BLUE TEAM | Field Operations</p>
+                <span class="team-role">Mobile Response Unit</span>
+            </div>
+            <div class="team-item blue-team">
+                <h3>Team 9 - ???</h3>
+                <p>Division: BLUE TEAM | Field Operations</p>
+                <span class="team-role">Multiverse Monitoring</span>
+            </div>
 
-          <!-- Additional Blue Teams -->
-          <div class="team-item blue-team">
-              <h3>Team 10 - ???</h3>
-              <p>Division: BLUE TEAM | Field Operations</p>
-              <span class="team-role">Archive Security</span>
-          </div>
-          <div class="team-item blue-team">
-              <h3>Team 11 - ???</h3>
-              <p>Division: BLUE TEAM | Field Operations</p>
-              <span class="team-role">Rapid Deployment</span>
-          </div>
-          <div class="team-item blue-team">
-              <h3>Team 12 - ???</h3>
-              <p>Division: BLUE TEAM | Field Operations</p>
-              <span class="team-role">Ripple Effect Analysis</span>
-          </div>
-          <div class="team-item blue-team">
-              <h3>Team 13 - ???</h3>
-              <p>Division: BLUE TEAM | Field Operations</p>
-              <span class="team-role">Offensive Operations</span>
-          </div>
-          <div class="team-item blue-team">
-              <h3>Team 14 - ???</h3>
-              <p>Division: BLUE TEAM | Field Operations</p>
-              <span class="team-role">Era-Specific Protection</span>
-          </div>
-          <div class="team-item blue-team">
-              <h3>Team 15 - ???</h3>
-              <p>Division: BLUE TEAM | Field Operations</p>
-              <span class="team-role">Precision Corrections</span>
-          </div>
-          <div class="team-item blue-team">
-              <h3>Team 16 - ???</h3>
-              <p>Division: BLUE TEAM | Field Operations</p>
-              <span class="team-role">Information Gathering</span>
-          </div>
-          <div class="team-item blue-team">
-              <h3>Team 17 - ???</h3>
-              <p>Division: BLUE TEAM | Field Operations</p>
-              <span class="team-role">Timeline Reconstruction</span>
-          </div>
-          <div class="team-item blue-team">
-              <h3>Team 18 - ???</h3>
-              <p>Division: BLUE TEAM | Field Operations</p>
-              <span class="team-role">Last Line of Defense</span>
-          </div>
-      </div>
+            <!-- Additional Blue Teams -->
+            <div class="team-item blue-team">
+                <h3>Team 10 - ???</h3>
+                <p>Division: BLUE TEAM | Field Operations</p>
+                <span class="team-role">Archive Security</span>
+            </div>
+            <div class="team-item blue-team">
+                <h3>Team 11 - ???</h3>
+                <p>Division: BLUE TEAM | Field Operations</p>
+                <span class="team-role">Rapid Deployment</span>
+            </div>
+            <div class="team-item blue-team">
+                <h3>Team 12 - ???</h3>
+                <p>Division: BLUE TEAM | Field Operations</p>
+                <span class="team-role">Ripple Effect Analysis</span>
+            </div>
+            <div class="team-item blue-team">
+                <h3>Team 13 - ???</h3>
+                <p>Division: BLUE TEAM | Field Operations</p>
+                <span class="team-role">Offensive Operations</span>
+            </div>
+            <div class="team-item blue-team">
+                <h3>Team 14 - ???</h3>
+                <p>Division: BLUE TEAM | Field Operations</p>
+                <span class="team-role">Era-Specific Protection</span>
+            </div>
+            <div class="team-item blue-team">
+                <h3>Team 15 - ???</h3>
+                <p>Division: BLUE TEAM | Field Operations</p>
+                <span class="team-role">Precision Corrections</span>
+            </div>
+            <div class="team-item blue-team">
+                <h3>Team 16 - ???</h3>
+                <p>Division: BLUE TEAM | Field Operations</p>
+                <span class="team-role">Information Gathering</span>
+            </div>
+            <div class="team-item blue-team">
+                <h3>Team 17 - ???</h3>
+                <p>Division: BLUE TEAM | Field Operations</p>
+                <span class="team-role">Timeline Reconstruction</span>
+            </div>
+            <div class="team-item blue-team">
+                <h3>Team 18 - ???</h3>
+                <p>Division: BLUE TEAM | Field Operations</p>
+                <span class="team-role">Last Line of Defense</span>
+            </div>
+        </div>
 
-      <!-- Support Teams Section -->
-      <div class="support-teams">
-          <h3>Support & Command Structure</h3>
-          <div class="support-grid">
-              <div class="support-item red-team">
-                  <h4>RED TEAM</h4>
-                  <p>Hourglass Inversion</p>
-                  <span>"Sands fall where we decide"</span>
-                  <p class="support-desc">Timeline adversaries attempting to alter historical events</p>
-              </div>
-              <div class="support-item white-team">
-                  <h4>WHITE TEAM</h4>
-                  <p>HTTP Analysts</p>
-                  <span>Mission Support & Analysis</span>
-                  <p class="support-desc">Facilitate communication, assist with mission support, and analyze reports</p>
-              </div>
-              <div class="support-item black-team">
-                  <h4>BLACK TEAM</h4>
-                  <p>HTTP Leadership</p>
-                  <span>Command & Oversight</span>
-                  <p class="support-desc">Event organizers and higher-ups providing critical support and oversight</p>
-              </div>
-          </div>
-      </div>
-  </section>
+        <!-- Support Teams Section -->
+        <div class="support-teams">
+            <h3>Support & Command Structure</h3>
+            <div class="support-grid">
+                <div class="support-item red-team">
+                    <h4>RED TEAM</h4>
+                    <p>Hourglass Inversion</p>
+                    <span>"Sands fall where we decide"</span>
+                    <p class="support-desc">Timeline adversaries attempting to alter historical events</p>
+                </div>
+                <div class="support-item white-team">
+                    <h4>WHITE TEAM</h4>
+                    <p>HTTP Analysts</p>
+                    <span>Mission Support & Analysis</span>
+                    <p class="support-desc">Facilitate communication, assist with mission support, and analyze reports</p>
+                </div>
+                <div class="support-item black-team">
+                    <h4>BLACK TEAM</h4>
+                    <p>HTTP Leadership</p>
+                    <span>Command & Oversight</span>
+                    <p class="support-desc">Event organizers and higher-ups providing critical support and oversight</p>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <!-- Sponsors Section -->
     <section class="sponsors">
@@ -817,9 +844,28 @@
     </footer>
 
     <script> 
-        function showAlert() { 
-            alert("This option is currently under development."); 
-        } 
+        function showMissionDetails() { 
+            document.getElementById('missionModal').style.display = 'flex';
+        }
+
+        function closeMissionDetails() {
+            document.getElementById('missionModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside the content
+        window.onclick = function(event) {
+            const modal = document.getElementById('missionModal');
+            if (event.target === modal) {
+                closeMissionDetails();
+            }
+        }
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeMissionDetails();
+            }
+        });
     </script> 
 </body> 
 </html>
