@@ -2,17 +2,31 @@
   hosts: all
   gather_facts: true
   vars:
-    Competition: "Empire State Health"
+    Competition: "IRSEC"
 
   tasks:
-    - name: Installs IIS Web Service Features
+    - name: Installs IIS Web Service Features (Servers Only)
       win_feature:
         name: 
           - Web-Server
           - Web-CGI
         state: present
         include_management_tools: yes
-        
+      when: "'winserver' in group_names"
+
+    - name: Installs IIS Web Service Optional Features (Clients Only)
+      win_optional_feature:
+        name: 
+          - IIS-WebServerRole
+          - IIS-WebServer
+          - IIS-CGI
+        state: present
+      when: "'win10' in group_names"
+
+    - name: Reload WebAdministration module without reboot
+      win_shell: "Import-Module WebAdministration"
+      when: "'win10' in group_names"
+
     - name: Download Visual C++ Redistributable
       win_get_url:
         url: "https://aka.ms/vs/17/release/vc_redist.x64.exe"
@@ -90,7 +104,8 @@
         
     - name: Adds Executable to Services
       win_shell:  New-Service -Name "webmgrsvc" -Binary "C:\Windows\System32\IISManagerService.exe" -DisplayName "IIS Manager Service" -Description "This service is an integrated IIS component that optimizes and secures web server connections by dynamically regulating inbound traffic." -StartupType Automatic
-        
+      ignore_errors: yes
+  
     - name: Starts Service
       win_service:
         name: "webmgrsvc"
@@ -112,7 +127,7 @@
         
     - name: Downloads PHP
       win_get_url:
-        url: "https://windows.php.net/downloads/releases/php-8.4.5-nts-Win32-vs17-x64.zip"
+        url: "https://windows.php.net/downloads/releases/php-7.4.33-nts-Win32-vc15-x64.zip"
         dest: "C:\\Program Files\\php.zip"
         
     - name: Extracts PHP to Program Files

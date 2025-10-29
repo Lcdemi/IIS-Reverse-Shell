@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IRSEC Website</title>
+    <style>
+        body {
+            font-family: 'Verdana', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+
+	    section {
+            border-top: 1.5px solid #6f0391;
+            padding-top: 20px;
+	    }
+
+        /* Header styling */
+        header {
+            position: relative;
+            background-color: #6f0391;
+            background-image: url('Images/header.jpg');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            padding: 40px 20px; 
+            text-align: center;
+        }
+
+        header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.35); /* Dark overlay */
+        }
+
+        header h1 {
+            position: relative;
+            font-size: 2.5rem;
+            z-index: 1; /* Keeps text above overlay */
+        }
+
+        nav {
+            background-color: white;
+            padding: 10px 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: left;
+        }
+        nav input[type="text"] {
+            width: 865px;
+            padding: 15px;
+            border: 1px solid #ccc;
+            font-size: 1rem;
+            outline: none;
+        }
+        nav input[type="text"]::placeholder {
+            color: #888;
+        }
+        nav img {
+            margin-left: 25px;
+            width: 550px;
+            height: 50px;
+        }
+
+        /* Main styling */
+        main {
+            padding: 40px 20px;
+            text-align: center;
+        }
+        main h2 {
+            font-size: 1.8rem;
+            color: #333;
+            margin-bottom: 35px;
+        }
+        main p {
+            font-size: 1rem;
+            color: #666;
+            max-width: 800px;
+            margin: 0 auto 20px;
+            line-height: 1.6;
+        }
+        main button {
+            padding: 10px 20px;
+            background-color: #ffd800;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        main button:hover {
+            background-color: #ffd800;
+        }
+
+        /* Gallery Section */
+        .gallery {
+            padding: 30px 10px;
+            text-align: center;
+	        margin-bottom: 20px;
+        }
+        .gallery h2 {
+            font-size: 1.8rem;
+            color: #333;
+            margin-bottom: 35px;
+        }
+        .gallery-photos {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            gap: 10px;
+        }
+        .gallery-photos img {
+            width: 32.6%;
+            height: auto;
+            object-fit: cover; 
+        }
+
+        /* Competing Teams Section */
+        .teams {
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .teams h2 {
+            font-size: 1.8rem;
+            color: #333;
+            margin-bottom: 35px;
+        }
+        .teams .team-list {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 0;
+            list-style: none;
+        }
+        .teams .team-list li {
+            font-size: 1rem;
+            color: #555;
+            margin: 10px 0;
+            padding: 10px;
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Sponsors Section */
+        .sponsors {
+            padding: 40px 20px;
+            text-align: center;
+	        margin-bottom: 20px;
+        }
+        .sponsors h2 {
+            font-size: 1.8rem;
+            color: #333;
+            margin-bottom: 35px;
+        }
+        .sponsors .sponsor-logos {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .sponsors img {
+            width: 250px;
+            height: auto;
+        }
+
+        /* Contact Form */
+        .contact {
+            padding: 40px 20px;
+            background-color: #6f0391;
+            color: white;
+            text-align: center;
+        }
+        .contact form {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .contact input, .contact textarea {
+            font-family: 'Verdana', sans-serif;
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        .contact input[type="submit"] {
+            background-color: #ffd800;
+            color: white;
+            cursor: pointer;
+        }
+        .contact input[type="submit"]:hover {
+            background-color: #ffd800;
+        }
+
+        /* Footer styling */
+        footer {
+            background-color: #333;
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>IRSEC</h1>
+    </header>    
+
+    <nav>
+        <form action="search.php" method="POST" style="flex-grow: 1;">
+            <input type="text" id="input_word" name="input_word" placeholder="Search here...">
+        </form>
+        <img src="Images\\logo.png" alt="Logo">
+    </nav>
+
+    <main>
+    	<h2>Mission Briefing</h2>
+    	<p>
+        	Agents of the Historical Timeline Taskforce & Protection (HTTP), your expertise is needed now more than ever.
+        	Our intelligence division has detected dangerous alterations spreading across the timeline — history itself
+        	is being rewritten in real time. These disruptions have been traced back to the clandestine group known as
+        	the Hourglass Inversion.
+    	</p>
+    	<p>
+        	As elite temporal security operatives, your mission is clear: respond immediately to incidents, reinforce 
+		mission-critical systems, and correct historical deviations as they occur. Every service you defend and every
+        	report you complete is essential to restoring and maintaining timeline stability.
+    	</p>
+    	<p>
+        	This organization has spent decades preparing for this exact moment. Now it is your turn to step into the
+        	timestream and safeguard the past, present, and future.
+        	<strong>We hold the line so the line continues on.</strong>
+    	</p>
+    	<button onclick="showAlert()">Access Mission Details</button>
+    </main>
+    <!-- Gallery Section -->
+    <section class="gallery">
+        <h2>Gallery</h2>
+        <div class="gallery-photos">
+            <img src="Images\\gallery1.jpg" alt="Gallery 1">
+            <img src="Images\\gallery2.jpg" alt="Gallery 2">
+            <img src="Images\\gallery3.jpg" alt="Gallery 3">
+        </div>
+    </section>
+
+    <!-- Competing Teams Section -->
+    <section class="teams">
+        <h2>Competing Teams</h2>
+        <ul class="team-list">
+            <li>Team 1 - ???</li>
+            <li>Team 2 - ???</li>
+            <li>Team 3 - ???</li>
+            <li>Team 4 - ???</li>
+            <li>Team 5 - ???</li>
+            <li>Team 6 - ???</li>
+            <li>Team 7 - ???</li>
+            <li>Team 8 - ???</li>
+            <li>Team 9 - ???</li>
+            <li>Team 10 - ???</li>
+            <li>Team 11 - ???</li>
+            <li>Team 12 - ???</li>
+            <li>Team 13 - ???</li>
+	    <li>Team 14 - ???</li>
+            <li>Team 15 - ???</li>
+            <li>Team 16 - ???</li>
+            <li>Team 17 - ???</li>
+	    <li>Team 18 - ???</li>
+            <li>Team 19 - ???</li>
+            <li>Team 20 - ???</li>
+        </ul>
+    </section>
+
+    <!-- Sponsors Section -->
+    <section class="sponsors">
+        <h2>Our Sponsors</h2>
+        <div class="sponsor-logos">
+            <img src="Images\\sponsor1.png" alt="Sponsor 1">
+        </div>
+    </section>
+
+    <!-- Contact Form -->
+    <section class="contact">
+        <h2>Contact Us Directly</h2>
+        <p>If you have any questions or feedback, we'd love to hear from you!</p>
+        <form action="contact.php" method="POST">
+            <textarea name="input_word" placeholder="Your Message" rows="5" required></textarea>
+            <input type="submit" value="Send">
+        </form>
+    </section>
+
+    <footer>
+        <p>&copy; 2025 All Rights Reserved. Crafted with ❤️  by Big Booty Inc.</p>
+    </footer>
+    <script> 
+	function showAlert() { 
+		alert("This option is currently under development."); 
+    	} 
+    </script> 
+</body> 
+</html>

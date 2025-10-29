@@ -1,6 +1,13 @@
 all:
   hosts:
-    192.168.1.1:
+  children:
+    winserver:
+      hosts:
+        192.168.1.1:
+        192.168.1.2:
+    win10:
+      hosts:
+        192.168.1.6:
   vars:
     ansible_user: da1
     ansible_password: Password-123456
