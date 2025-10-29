@@ -3,9 +3,10 @@ import time
 import json
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-ALL_CLIENTS = [
+ALL_SYSTEMS = [
     "192.168.1.1",
     "192.168.1.2",
+    "192.168.1.6",
     # ...
 ]
 ALL_DC = [
@@ -16,9 +17,13 @@ ALL_IIS = [
     "192.168.1.2",
     # ...
 ]
+ALL_WIN10 = [
+    "192.168.1.6",
+    # ...
+]
 
 PORT = 8080
-TIMEOUT = 5
+TIMEOUT = 60
 CONCURRENCY = 8
 THROTTLE_MS = 50
 
@@ -37,35 +42,38 @@ def send_to(client, port, command):
         return (client, "ERR", str(e))
     
 def interface():
-    print("Select target group:")
-    print("1. All Clients")
-    print("2. All Domain Controllers")
-    print("3. All IIS Servers")
-    
-    choice = input("Enter Choice (1-3): ")
-    
-    POWERSHELL_COMMAND = input("Input Powershell Command: ")
-    
-    if choice == '1':
-        return ALL_CLIENTS, POWERSHELL_COMMAND
-    elif choice == '2':
-        return ALL_DC, POWERSHELL_COMMAND
-    elif choice == '3':
-        return ALL_IIS, POWERSHELL_COMMAND
-    else:
-        print("Invalid choice, defaulting to All Clients.")
-        return ALL_CLIENTS, POWERSHELL_COMMAND
-
+    while True:
+        print("Select target group:")
+        print("1. All Systems")
+        print("2. All Domain Controllers")
+        print("3. All IIS Servers")
+        print("4. All Windows Clients")
+        
+        choice = input("Enter Choice (1-4): ")
+        
+        COMMAND = input("Input Command: ")
+        
+        if choice == '1':
+            return ALL_SYSTEMS, COMMAND
+        elif choice == '2':
+            return ALL_DC, COMMAND
+        elif choice == '3':
+            return ALL_IIS, COMMAND
+        elif choice == '4':
+            return ALL_WIN10, COMMAND
+        else:
+            print("Invalid choice, please try again.")
+	    
 def main():
     # Loops the terminal interface
     while True:
-        CLIENT_CHOICE, POWERSHELL_COMMAND = interface()
+        CLIENT_CHOICE, COMMAND = interface()
 
         with ThreadPoolExecutor(max_workers=CONCURRENCY) as ex:
             futures = []
             for client in CLIENT_CHOICE:
                 # Send command to each client with throttling
-                futures.append(ex.submit(send_to, client, PORT, POWERSHELL_COMMAND))
+                futures.append(ex.submit(send_to, client, PORT, COMMAND))
                 time.sleep(THROTTLE_MS / 1000.0)
 
             for fut in as_completed(futures):
