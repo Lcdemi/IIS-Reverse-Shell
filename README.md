@@ -69,6 +69,8 @@ IIS-Reverse-Shell is a Red Team operational toolkit for Windows environments tha
   sudo apt install ansible
   sudo apt install python3-pip
   pip install inquirerpy
+  pip install rich
+  pip install pyfiglet
   ```
 
 ### Steps
