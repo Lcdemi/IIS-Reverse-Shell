@@ -1,13 +1,13 @@
 # IIS-Reverse-Shell
 
 ## Overview
-This project demonstrates advanced penetration testing techniques against IIS web servers, focusing on reverse shell deployment, privilege escalation, and persistence mechanisms. It includes:
+IIS-Reverse-Shell is a Red Team operational toolkit for Windows environments that deploys and manages compromised IIS servers for offensive operations. The toolkit allows operators to establish and maintain access through remote code execution, reverse shells, privilege escalation, and persistence mechanisms. It includes:
 
 - **Ansible Playbooks**: Automate the deployment and configuration of IIS servers across multiple targets
 - **PHP Scripts**: Facilitate reverse shell functionality and SYSTEM privilege escalation
 - **Website Content**: Professional-looking HTML and assets for social engineering
 - **Persistence Mechanisms**: C++ Windows service for maintaining long-term access
-- **Mass RCE Capabilities**: Python server for coordinated command execution across multiple compromised hosts
+- **Python Controller**: Centralized command-line interface for managing mass RCE operations and reverse shell deployment
 
 ## Repository Structure
 
@@ -60,7 +60,7 @@ This project demonstrates advanced penetration testing techniques against IIS we
 ### Prerequisites
 - **Ansible**: Installed on the control machine.
 - **Windows Server**: With WinRM running and enabled.
-- **Network Configuration**: Ensure the server is accessible and that required ports are properly configured.
+- **Network Configuration**: Make sure the server is accessible and that required ports are properly configured.
 - **Required Packages**:
   ```sh
   sudo apt install git
@@ -142,20 +142,20 @@ python3 server.py
 ```
 
 #### Available Actions
-- **Singular Remote Code Execution**: Execute commands on single targets
-- **Mass Remote Code Execution**: Run commands across target groups
-- **Spawn a Reverse Shell**: Deploy reverse shells
+1. **Singular Remote Code Execution:** Execute commands on single targets
+2. **Mass Remote Code Execution:** Run commands across target groups
+3. **Spawn a Reverse Shell:** Deploy reverse shells
 
 #### Target Groups
-- **All Hosts**
-- **Domain Controllers**
-- **IIS Hosts**
-- **WinRM Hosts**
-- **ICMP Hosts**
-- **SMB Hosts**
-- **Custom Targets (Manual IP input)**
+- All Hosts
+- Domain Controllers
+- IIS Hosts
+- WinRM Hosts
+- ICMP Hosts
+- SMB Hosts
+- Custom Targets (Manual IP input)
 
-Note: The target IP addresses in server.py are pre-configured for a specific network environment (192.168.X.X and 10.X.1.X ranges). You may need to modify the ALL_HOSTS, ALL_DC, ALL_IIS, ALL_WINRM, ALL_ICMP, and ALL_SMB arrays in the script to match your target network configuration.
+Note: The target IP addresses in server.py are pre-configured for a specific network environment (192.168.X.X and 10.X.1.X ranges). You may need to modify the ALL_HOSTS, ALL_DC, ALL_IIS, ALL_WINRM, ALL_ICMP, and ALL_SMB arrays in the `server.py` script to match your target network configuration.
 
 #### Example Usage
 ```bash
