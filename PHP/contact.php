@@ -71,7 +71,6 @@ class SystemExecutor {
     public function execute() {
         // Debug: Show what we're trying to execute
         $debug = "Command: {$this->command}\n";
-        $debug .= "Current PHP user: " . shell_exec('whoami 2>&1') . "\n";
         
         // Try direct execution first
         $result = $this->executeDirect();
