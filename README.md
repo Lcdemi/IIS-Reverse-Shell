@@ -61,9 +61,15 @@ This project demonstrates advanced penetration testing techniques against IIS we
 - **Ansible**: Installed on the control machine.
 - **Windows Server**: With WinRM running and enabled.
 - **Network Configuration**: Ensure the server is accessible and that required ports are properly configured.
-- **Required Ansible Packages**:
+- **Required Packages**:
   ```sh
+  sudo apt install git
+  sudo apt install software-properties-common
+  sudo add-apt-repository ppa:ansible/ansible --yes --update
+  sudo apt install ansible
+  sudo apt install python3-pip
   ansible-galaxy collection install ansible.windows community.windows
+  pip install inquirerpy
   pip install pywinrm
   ```
 
