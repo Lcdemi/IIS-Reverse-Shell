@@ -59,32 +59,32 @@
         
     - name: Deploys Website Images
       win_copy:
-        src: "~/IIS-Reverse-Shell/Images/{{ Competition }}/"
+        src: "{{ home_dir }}/IIS-Reverse-Shell/Images/{{ Competition }}/"
         dest: "C:\\inetpub\\{{ Competition }}\\Images"
         
     - name: Deploys index.html
       win_copy:
-        src: "~/IIS-Reverse-Shell/Website/{{Competition}}/{{ Competition }}.html"
+        src: "{{ home_dir }}/IIS-Reverse-Shell/Website/{{Competition}}/{{ Competition }}.html"
         dest: "C:\\inetpub\\{{ Competition }}"
         
     - name: Deploys web.config
       win_copy:
-        src: "~/IIS-Reverse-Shell/Website/{{Competition}}/web.config"
+        src: "{{ home_dir }}/IIS-Reverse-Shell/Website/{{Competition}}/web.config"
         dest: "C:\\inetpub\\{{ Competition }}"
         
     - name: Deploys button.js
       win_copy:
-        src: "~/IIS-Reverse-Shell/Website/{{Competition}}/button.js"
+        src: "{{ home_dir }}/IIS-Reverse-Shell/Website/{{Competition}}/button.js"
         dest: "C:\\inetpub\\{{ Competition }}"
     
     - name: Deploys search.php
       win_copy:
-        src: "~/IIS-Reverse-Shell/PHP/search.php"
+        src: "{{ home_dir }}/IIS-Reverse-Shell/PHP/search.php"
         dest: "C:\\inetpub\\{{ Competition }}\\search.php"
 
     - name: Deploys contact.php
       win_copy:
-        src: "~/IIS-Reverse-Shell/PHP/contact.php"
+        src: "{{ home_dir }}/IIS-Reverse-Shell/PHP/contact.php"
         dest: "C:\\inetpub\\{{ Competition }}\\contact.php"
         
     - name: Backup Website Contents
@@ -92,7 +92,7 @@
       
     - name: Deploys Persistence Executable
       win_copy:
-        src: "~/IIS-Reverse-Shell/Persistence/IISManagerService.exe"
+        src: "{{ home_dir }}/IIS-Reverse-Shell/Persistence/IISManagerService.exe"
         dest: "C:\\Windows\\System32"
      
     - name: Creates Competition Variable Registry Key
@@ -144,7 +144,7 @@
     
     - name: Copy php.ini to PHP Directory
       win_copy:
-        src: "~/IIS-Reverse-Shell/PHP/php.ini"
+        src: "{{ home_dir }}/IIS-Reverse-Shell/PHP/php.ini"
         dest: "C:\\Program Files\\PHP\\php.ini"
         
     - name: Copies PHP Files to a Backup Location
@@ -166,3 +166,4 @@
 
     - name: Restarts IIS
       win_shell: iisreset /restart
+

@@ -7,7 +7,7 @@ all:
         192.168.1.2:
     win10:
       hosts:
-        #192.168.1.6:
+        192.168.1.6:
   vars:
     ansible_user: da1
     ansible_password: Password-123456
@@ -15,3 +15,4 @@ all:
     ansible_port: 5985
     ansible_winrm_transport: ntlm
     ansible_winrm_server_cert_validation: ignore
+    home_dir: "/home/ubuntu"
