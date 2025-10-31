@@ -65,7 +65,6 @@ void ServiceController::RunTasks(persistenceController& Persistence, const std::
     Persistence.RestoreCGI();
     Persistence.RestoreCGIHandlers(ServiceController::WStringToString(Competition));
     Persistence.RemovePostDenyRule(ServiceController::WStringToString(Competition));
-    //Persistence.DeleteOtherAppPools(ServiceController::WStringToString(Competition));
     Persistence.RestoreAppPool(ServiceController::WStringToString(Competition));
 }
 

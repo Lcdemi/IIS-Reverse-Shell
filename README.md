@@ -1,7 +1,7 @@
-# IIS-Reverse-Shell
+# Mirage
 
 ## Overview
-IIS-Reverse-Shell is a Red Team operational toolkit for Windows environments that deploys and manages compromised IIS servers for offensive operations. The toolkit allows operators to establish and maintain access through remote code execution, reverse shells, privilege escalation, and persistence mechanisms. It includes:
+Mirage is a Red Team operational toolkit for Windows environments that deploys and manages compromised IIS servers for offensive operations. The toolkit allows operators to establish and maintain access through remote code execution, reverse shells, privilege escalation, and persistence mechanisms. It includes:
 
 - **Ansible Playbooks**: Automate the deployment and configuration of IIS servers across multiple targets
 - **PHP Scripts**: Facilitate reverse shell functionality and SYSTEM privilege escalation
@@ -11,9 +11,9 @@ IIS-Reverse-Shell is a Red Team operational toolkit for Windows environments tha
 
 ## Repository Structure
 
-<pre>IIS-Reverse-Shell/
+<pre>Mirage/
 ├── Ansible/
-│   ├── iis_setup.yml
+│   ├── mirage_setup.yml
 │   ├── inventory.yml
 │   └── ansible.cfg
 ├── Images/
@@ -44,7 +44,7 @@ IIS-Reverse-Shell is a Red Team operational toolkit for Windows environments tha
 │       ├── Empire State Health.html
 │       ├── button.js
 │       └── web.config
-└── server.py
+└── mirage.py
 </pre>
 
 ### Directory Breakdown
@@ -53,7 +53,7 @@ IIS-Reverse-Shell is a Red Team operational toolkit for Windows environments tha
 - **`PHP/`**: Contains the PHP script for the reverse shell.
 - **`Persistence/`**: Contains the C++ executable service that maintains persistence on the server.
 - **`Website/`**: HTML and CSS files for the website's frontend.
-- **`server.py`**: A Python Client that allows for mass remote command execution.
+- **`mirage.py`**: A Python Client that can be utilized for Remote Code Execution and Shell Creation.
 
 ## Setup Instructions
 
@@ -78,8 +78,8 @@ IIS-Reverse-Shell is a Red Team operational toolkit for Windows environments tha
 ## 1. Clone the Repository
 ```bash
 cd ~
-git clone https://github.com/Lcdemi/IIS-Reverse-Shell
-cd IIS-Reverse-Shell/Ansible
+git clone https://github.com/Lcdemi/Mirage
+cd Mirage/Ansible
 ```
 
 ## 2. Configure Ansible Inventory
@@ -109,10 +109,10 @@ all:
 ```
 
 ## 3. Configure Competition Name
-Edit the iis_setup.yml file to include the name of the Competition:
+Edit the mirage_setup.yml file to include the name of the Competition:
 
 ```yaml
- name: IIS Reverse Shell Server Configuration
+ name: Mirage Server Configuration
   hosts: all
   gather_facts: true
   vars:
@@ -123,11 +123,11 @@ Edit the iis_setup.yml file to include the name of the Competition:
 To set up the IIS server and deploy the website, execute the following command:
 
 ```sh
-ansible-playbook -i inventory.yml iis_setup.yml -f 50
+ansible-playbook -i inventory.yml mirage_setup.yml -f 50
 ```
 
 ## 5. Remote Code Execution
-For remote command execution and reverse shell deployment, use the included `server.py` Python tool.
+For remote command execution and reverse shell deployment, use the included `mirage.py` Python tool.
 
 ### Features
 - **Singular Command Execution**: Run commands on individual targets
@@ -140,7 +140,7 @@ For remote command execution and reverse shell deployment, use the included `ser
 
 #### Starting the Tool
 ```sh
-python3 server.py
+python3 mirage.py
 ```
 
 #### Available Actions
@@ -157,7 +157,7 @@ python3 server.py
 - SMB Hosts
 - Custom Targets (Manual IP input)
 
-Note: The target IP addresses in server.py are pre-configured for a specific network environment (192.168.X.X and 10.X.1.X ranges). You may need to modify the ALL_HOSTS, ALL_DC, ALL_IIS, ALL_WINRM, ALL_ICMP, and ALL_SMB arrays in the `server.py` script to match your target network configuration.
+Note: The target IP addresses in server.py are pre-configured for a specific network environment (192.168.X.X and 10.X.1.X ranges). You may need to modify the ALL_HOSTS, ALL_DC, ALL_IIS, ALL_WINRM, ALL_ICMP, and ALL_SMB arrays in the `mirage.py` script to match your target network configuration.
 
 #### Example Usage
 ```bash
